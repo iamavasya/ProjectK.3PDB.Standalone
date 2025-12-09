@@ -6,12 +6,7 @@ using ProjectK._3PDB.Standalone.BL.Models;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using ProjectK._3PDB.Standalone.Infrastructure.CsvMaps;
 using ProjectK._3PDB.Standalone.Infrastructure.Entities;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ProjectK._3PDB.Standalone.BL.Services
 {
@@ -64,21 +59,14 @@ namespace ProjectK._3PDB.Standalone.BL.Services
 
             if (existingEntity == null) throw new Exception("Not found");
 
-            // --- Перевірка змін (тут треба порівнювати entity з dto) ---
             var changes = new List<ParticipantHistory>();
             var now = DateTime.Now;
 
-            // Приклад перевірки (порівнюємо Entity Field з DTO Property)
             CheckChange(existingEntity, "Kurin", existingEntity.Kurin, dto.Kurin, changes, now);
             CheckChange(existingEntity, "Status: IsProbeOpen", existingEntity.IsProbeOpen, dto.IsProbeOpen, changes, now);
-            // ... інші поля ...
 
-            // Оновлюємо поля Entity значеннями з DTO
-            // AutoMapper тут теж може допомогти: _mapper.Map(dto, existingEntity);
-            // Але обережно, щоб він не перезатер ID або колекцію історії
             _mapper.Map(dto, existingEntity);
 
-            // Відновлюємо історію, якщо мапер її затер (або налаштувати Ignore в профілі)
             if (changes.Any())
             {
                 existingEntity.History.AddRange(changes);
@@ -116,7 +104,7 @@ namespace ProjectK._3PDB.Standalone.BL.Services
                         .Include(p => p.History)
                         .FirstOrDefaultAsync(p => p.ParticipantKey == participantKey);
 
-            return _mapper.Map<ParticipantDto>(entity); // Якщо entity null, поверне null
+            return _mapper.Map<ParticipantDto>(entity);
         }
 
         public async Task<List<ParticipantHistory>> GetHistoryAsync(Guid participantKey)
@@ -131,7 +119,6 @@ namespace ProjectK._3PDB.Standalone.BL.Services
         {
             var entity = _mapper.Map<Participant>(dto);
 
-            // Логіка історії
             entity.History.Add(new ParticipantHistory
             {
                 PropertyName = "Record",
@@ -142,7 +129,6 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             _context.Participants.Add(entity);
             await _context.SaveChangesAsync();
 
-            // Повертаємо оновлений DTO (вже з ID)
             return _mapper.Map<ParticipantDto>(entity);
         }
     }

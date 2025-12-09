@@ -60,7 +60,7 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             try
             {
                 await _service.UpdateAsync(participant);
-                return NoContent(); // 204 Success
+                return NoContent();
             }
             catch (Exception ex) when (ex.Message == "Not found")
             {
@@ -82,7 +82,6 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Participant>> Create([FromBody] ParticipantDto participant)
         {
-            // Тут варто додати валідацію, якщо її немає в BL
             var created = await _service.CreateAsync(participant);
             return CreatedAtAction(nameof(GetById), new { id = created.ParticipantKey }, created);
         }
