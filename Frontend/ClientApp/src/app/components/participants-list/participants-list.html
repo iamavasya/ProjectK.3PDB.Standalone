@@ -1,0 +1,120 @@
+<p-toast />
+
+<div class="card p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">База Учасників</h1>
+        
+        <div class="flex gap-2">
+            <p-fileUpload 
+                mode="basic" 
+                chooseLabel="Імпорт CSV" 
+                chooseIcon="pi pi-upload"
+                name="demo[]" 
+                accept=".csv" 
+                maxFileSize="1000000" 
+                (onSelect)="onFileSelect($event)" 
+                [auto]="true" 
+                severity="help" />
+                
+            <p-button label="Оновити" icon="pi pi-refresh" (onClick)="loadData()" outlined="true" />
+        </div>
+    </div>
+
+    <p-table 
+        [value]="participants()" 
+        [paginator]="true" 
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 25, 50]"
+        [loading]="loading()"
+        [globalFilterFields]="['fullName', 'email', 'phone', 'kurin']"
+        #dt1
+        styleClass="p-datatable-sm"
+    >
+        <ng-template pTemplate="caption">
+            <div class="flex">
+                <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input 
+                        pInputText 
+                        type="text" 
+                        (input)="dt1.filterGlobal($any($event.target).value, 'contains')" 
+                        placeholder="Пошук..." 
+                    />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+    <ng-template pTemplate="header">
+        <tr>
+            <th pSortableColumn="kurin" style="width:5%">Курінь <p-sortIcon field="kurin" /></th>
+            <th pSortableColumn="fullName">ПІБ <p-sortIcon field="fullName" /></th>
+            
+            <th pSortableColumn="birthDate">Вік <p-sortIcon field="birthDate" /></th>
+            <th pSortableColumn="daysToProbeEnd">Днів до кінця проби <p-sortIcon field="daysToProbeEnd" /></th>
+            
+            <th>Контакти</th>
+            <th pSortableColumn="isProbeOpen">Проба <p-sortIcon field="isProbeOpen" /></th>
+            <th pSortableColumn="isFormFilled">Форма <p-sortIcon field="isFormFilled" /></th>
+            <th>Дії</th>
+        </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-p>
+        <tr>
+            <td>{{ p.kurin }}</td>
+            <td class="font-semibold">{{ p.fullName }}</td>
+            
+            <td>
+                <span class="font-bold text-slate-700">{{ p.birthDate | age }}</span>
+                <span class="text-xs text-slate-500 ml-1" *ngIf="p.birthDate">років</span>
+            </td>
+            
+            <td>
+                <p-tag *ngIf="p.daysToProbeEnd <= 0" severity="secondary" value="Завершено"></p-tag>
+
+                <div *ngIf="p.daysToProbeEnd > 0" class="flex items-center gap-2">
+                    <span 
+                        class="font-mono font-bold"
+                        [ngClass]="{
+                            'text-red-600': p.daysToProbeEnd < 90,
+                            'text-amber-600': p.daysToProbeEnd >= 90 && p.daysToProbeEnd < 365,
+                            'text-slate-600': p.daysToProbeEnd >= 365 && p.daysToProbeEnd < 600,
+                            'text-green-600': p.daysToProbeEnd >= 600
+                        }"
+                    >
+                        {{ p.daysToProbeEnd }}
+                    </span>
+                    <span class="text-xs text-slate-400">днів</span>
+                </div>
+                
+                <span *ngIf="p.daysToProbeEnd === -9999" class="text-slate-300">-</span>
+            </td>
+
+            <td>
+                <div class="flex flex-col text-sm">
+                    <span>{{ p.phone }}</span>
+                    <span class="text-slate-500 text-xs">{{ p.email }}</span>
+                </div>
+            </td>
+            
+            <td>
+                <p-tag [value]="p.isProbeOpen ? 'Відкрита' : 'Закрита'" [severity]="getSeverity(p.isProbeOpen)" />
+            </td>
+            <td>
+                <i class="pi" [ngClass]="{'pi-check-circle text-green-500': p.isFormFilled, 'pi-times-circle text-red-400': !p.isFormFilled}"></i>
+            </td>
+            <td>
+                <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" />
+            </td>
+        </tr>
+    </ng-template>
+        
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center p-4">Даних немає. Завантажте CSV файл.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

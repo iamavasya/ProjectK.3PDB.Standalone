@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ProjectK.3PDB.Standalone.API/ProjectK.3PDB.Standalone.API.csproj" />
+  <Project Path="ProjectK.3PDB.Standalone.BL/ProjectK.3PDB.Standalone.BL.csproj" />
+  <Project Path="ProjectK.3PDB.Standalone.Infrastructure/ProjectK.3PDB.Standalone.Infrastructure.csproj" />
+</Solution>
