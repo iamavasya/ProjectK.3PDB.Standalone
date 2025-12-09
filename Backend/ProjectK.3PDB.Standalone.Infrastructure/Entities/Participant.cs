@@ -26,7 +26,7 @@ public class Participant
     public DateTime? ProbeOpenDate { get; set;}
     public DateTime? BirthDate { get; set; }
 
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
     
     public List<ParticipantHistory> History { get; set; } = [];
 }

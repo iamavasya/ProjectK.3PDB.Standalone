@@ -8,26 +8,30 @@ import { Participant, ParticipantHistory } from '../models/participant.model';
 })
 export class ParticipantService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7001/api/participant';
+  private apiUrl = 'http://localhost:5220/api/participant';
 
   getAll(): Observable<Participant[]> {
     return this.http.get<Participant[]>(this.apiUrl);
   }
 
-  getById(id: number): Observable<Participant> {
-    return this.http.get<Participant>(`${this.apiUrl}/${id}`);
+  getByKey(participantKey: string): Observable<Participant> {
+    return this.http.get<Participant>(`${this.apiUrl}/${participantKey}`);
   }
   
-  getHistory(id: number): Observable<ParticipantHistory[]> {
-    return this.http.get<ParticipantHistory[]>(`${this.apiUrl}/${id}/history`);
+  getHistory(participantKey: string): Observable<ParticipantHistory[]> {
+    return this.http.get<ParticipantHistory[]>(`${this.apiUrl}/${participantKey}/history`);
   }
 
   create(participant: Participant): Observable<Participant> {
     return this.http.post<Participant>(this.apiUrl, participant);
   }
 
-  update(id: number, participant: Participant): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, participant);
+  update(participantKey: string, participant: Participant): Observable<Participant> {
+    return this.http.put<Participant>(`${this.apiUrl}/${participantKey}`, participant);
+  }
+
+  delete(participantKey: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${participantKey}`);
   }
 
   

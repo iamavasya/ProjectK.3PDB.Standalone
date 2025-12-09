@@ -22,8 +22,8 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Participant>> GetById(Guid participantKey)
+        [HttpGet("{participantKey:guid}")]
+        public async Task<ActionResult<Participant>> GetByKey(Guid participantKey)
         {
             var participant = await _service.GetByKeyAsync(participantKey);
             if (participant == null) return NotFound();
@@ -51,7 +51,7 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{participantKey:guid}")]
         public async Task<IActionResult> Update(Guid participantKey, [FromBody] ParticipantDto participant)
         {
             if (participantKey != participant.ParticipantKey)
@@ -72,7 +72,7 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             }
         }
 
-        [HttpGet("{id}/history")]
+        [HttpGet("{participantKey:guid}/history")]
         public async Task<ActionResult<List<ParticipantHistory>>> GetHistory(Guid participantKey)
         {
             var history = await _service.GetHistoryAsync(participantKey);
@@ -83,7 +83,25 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
         public async Task<ActionResult<Participant>> Create([FromBody] ParticipantDto participant)
         {
             var created = await _service.CreateAsync(participant);
-            return CreatedAtAction(nameof(GetById), new { id = created.ParticipantKey }, created);
+            return CreatedAtAction(nameof(GetByKey), new { participantKey = created.ParticipantKey }, created);
+        }
+
+        [HttpDelete("{participantKey:guid}")]
+        public async Task<IActionResult> Delete(Guid participantKey)
+        {
+            try
+            {
+                await _service.DeleteAsync(participantKey);
+                return NoContent();
+            }
+            catch (Exception ex) when (ex.Message == "Not found")
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

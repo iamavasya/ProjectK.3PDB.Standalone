@@ -16,5 +16,5 @@ public class ParticipantHistory
     public string? NewValue { get; set; }
     public DateTime ChangedAt { get; set; }
 
-    public Participant Participant { get; set; }
+    public Participant? Participant { get; set; }
 }

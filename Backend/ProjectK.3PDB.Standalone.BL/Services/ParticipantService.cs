@@ -34,9 +34,11 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             using var csv = new CsvReader(reader, config);
             csv.Context.RegisterClassMap<ParticipantCsvMap>();
 
-            var records = csv.GetRecords<ProjectK._3PDB.Standalone.Infrastructure.Entities.Participant>().ToList();
+            var records = csv.GetRecords<ParticipantDto>().ToList();
 
-            foreach (var record in records)
+            var entities = _mapper.Map<List<Participant>>(records);
+
+            foreach (var record in entities)
             {
                 record.History.Add(new Infrastructure.Entities.ParticipantHistory
                 {
@@ -47,7 +49,7 @@ namespace ProjectK._3PDB.Standalone.BL.Services
                 });
             }
 
-            await _context.Participants.AddRangeAsync(records);
+            await _context.Participants.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
         }
 
@@ -59,34 +61,19 @@ namespace ProjectK._3PDB.Standalone.BL.Services
 
             if (existingEntity == null) throw new Exception("Not found");
 
-            var changes = new List<ParticipantHistory>();
-            var now = DateTime.Now;
-
-            CheckChange(existingEntity, "Kurin", existingEntity.Kurin, dto.Kurin, changes, now);
-            CheckChange(existingEntity, "Status: IsProbeOpen", existingEntity.IsProbeOpen, dto.IsProbeOpen, changes, now);
+            var changes = DetectChanges(existingEntity, dto);
 
             _mapper.Map(dto, existingEntity);
 
             if (changes.Any())
             {
-                existingEntity.History.AddRange(changes);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        private void CheckChange<T>(Participant entity, string propName, T oldVal, T newVal, List<ParticipantHistory> history, DateTime now)
-        {
-            if (!EqualityComparer<T>.Default.Equals(oldVal, newVal))
-            {
-                history.Add(new ParticipantHistory
+                foreach (var change in changes)
                 {
-                    ParticipantKey = entity.ParticipantKey,
-                    PropertyName = propName,
-                    OldValue = oldVal?.ToString() ?? "null",
-                    NewValue = newVal?.ToString() ?? "null",
-                    ChangedAt = now
-                });
+                    existingEntity.History.Add(change);
+                }
             }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<List<ParticipantDto>> GetAllAsync()
@@ -115,6 +102,15 @@ namespace ProjectK._3PDB.Standalone.BL.Services
                 .ToListAsync();
         }
 
+        public async Task DeleteAsync (Guid participantKey)
+        {
+            var entity = await _context.Participants
+                        .FirstOrDefaultAsync(p => p.ParticipantKey == participantKey);
+            if (entity == null) throw new Exception("Not found");
+            _context.Participants.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<ParticipantDto> CreateAsync(ParticipantDto dto)
         {
             var entity = _mapper.Map<Participant>(dto);
@@ -130,6 +126,67 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             await _context.SaveChangesAsync();
 
             return _mapper.Map<ParticipantDto>(entity);
+        }
+
+        private readonly Dictionary<string, string> _trackedProperties = new()
+        {
+            { nameof(ParticipantDto.FullName), "ПІБ" },
+            { nameof(ParticipantDto.Kurin), "Курінь" },
+            { nameof(ParticipantDto.Email), "Email" },
+            { nameof(ParticipantDto.Phone), "Телефон" },
+            { nameof(ParticipantDto.IsProbeOpen), "Відкрита проба" },
+            { nameof(ParticipantDto.IsMotivationLetterWritten), "Мотиваційний лист" },
+            { nameof(ParticipantDto.IsFormFilled), "Заповнена форма" },
+            { nameof(ParticipantDto.IsProbeContinued), "Проба продовжена" },
+            { nameof(ParticipantDto.IsProbeFrozen), "Проба заморожена" },
+            { nameof(ParticipantDto.ProbeOpenDate), "Дата відкриття" },
+            { nameof(ParticipantDto.BirthDate), "Дата народження" },
+            { nameof(ParticipantDto.Notes), "Нотатки" }
+        };
+
+        private List<ParticipantHistory> DetectChanges(Participant existingEntity, ParticipantDto newDto)
+        {
+            var changes = new List<ParticipantHistory>();
+            var now = DateTime.Now;
+
+            var dtoType = typeof(ParticipantDto);
+            var entityType = typeof(Participant);
+
+            foreach (var propName in _trackedProperties.Keys)
+            {
+                var dtoProp = dtoType.GetProperty(propName);
+                var entityProp = entityType.GetProperty(propName);
+
+                if (dtoProp == null || entityProp == null) continue;
+
+                var newValue = dtoProp.GetValue(newDto); var oldValue = entityProp.GetValue(existingEntity);
+                string sNew = FormatValue(newValue);
+                string sOld = FormatValue(oldValue);
+
+                if (sNew != sOld)
+                {
+                    changes.Add(new ParticipantHistory
+                    {
+                        PropertyName = propName,
+                        OldValue = sOld,
+                        NewValue = sNew,
+                        ChangedAt = now
+                    });
+                }
+            }
+
+            return changes;
+        }
+
+        private string FormatValue(object? value)
+        {
+            if (value == null) return "";
+            if (value is DateTime dt)
+                return dt.ToString("dd.MM.yyyy");
+
+            if (value is bool b)
+                return b ? "Tak" : "Ni";
+            return value.ToString()?.Trim() ?? "";
         }
     }
 }

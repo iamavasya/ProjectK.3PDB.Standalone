@@ -1,12 +1,14 @@
 <p-toast />
+<p-confirmDialog />
 
 <div class="card p-6">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">База Учасників</h1>
-        
+        <h1 class="text-2xl font-bold text-slate-800">База третьопробників</h1>
         <div class="flex gap-2">
-            <p-fileUpload 
-                mode="basic" 
+            <p-button label="Додати" icon="pi pi-plus" severity="primary" (onClick)="openCreate()" />
+            
+            <p-fileupload 
+                mode="basic"
                 chooseLabel="Імпорт CSV" 
                 chooseIcon="pi pi-upload"
                 name="demo[]" 
@@ -16,7 +18,7 @@
                 [auto]="true" 
                 severity="help" />
                 
-            <p-button label="Оновити" icon="pi pi-refresh" (onClick)="loadData()" outlined="true" />
+            <p-button icon="pi pi-refresh" (onClick)="loadData()" variant="outlined" />
         </div>
     </div>
 
@@ -24,18 +26,17 @@
         [value]="participants()" 
         [paginator]="true" 
         [rows]="10"
-        [rowsPerPageOptions]="[10, 25, 50]"
         [loading]="loading()"
-        [globalFilterFields]="['fullName', 'email', 'phone', 'kurin']"
+        [globalFilterFields]="['fullName', 'email', 'kurin']"
+        [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
         #dt1
         styleClass="p-datatable-sm"
+        stripedRows
     >
         <ng-template pTemplate="caption">
-            <div class="flex">
-                <p-iconfield iconPosition="left" class="ml-auto">
-                    <p-inputicon>
-                        <i class="pi pi-search"></i>
-                    </p-inputicon>
+            <div class="flex justify-end">
+                <p-iconfield iconPosition="left">
+                    <p-inputicon styleClass="pi pi-search" />
                     <input 
                         pInputText 
                         type="text" 
@@ -46,75 +47,135 @@
             </div>
         </ng-template>
 
-    <ng-template pTemplate="header">
-        <tr>
-            <th pSortableColumn="kurin" style="width:5%">Курінь <p-sortIcon field="kurin" /></th>
-            <th pSortableColumn="fullName">ПІБ <p-sortIcon field="fullName" /></th>
-            
-            <th pSortableColumn="birthDate">Вік <p-sortIcon field="birthDate" /></th>
-            <th pSortableColumn="daysToProbeEnd">Днів до кінця проби <p-sortIcon field="daysToProbeEnd" /></th>
-            
-            <th>Контакти</th>
-            <th pSortableColumn="isProbeOpen">Проба <p-sortIcon field="isProbeOpen" /></th>
-            <th pSortableColumn="isFormFilled">Форма <p-sortIcon field="isFormFilled" /></th>
-            <th>Дії</th>
-        </tr>
-    </ng-template>
-
-    <ng-template pTemplate="body" let-p>
-        <tr>
-            <td>{{ p.kurin }}</td>
-            <td class="font-semibold">{{ p.fullName }}</td>
-            
-            <td>
-                <span class="font-bold text-slate-700">{{ p.birthDate | age }}</span>
-                <span class="text-xs text-slate-500 ml-1" *ngIf="p.birthDate">років</span>
-            </td>
-            
-            <td>
-                <p-tag *ngIf="p.daysToProbeEnd <= 0" severity="secondary" value="Завершено"></p-tag>
-
-                <div *ngIf="p.daysToProbeEnd > 0" class="flex items-center gap-2">
-                    <span 
-                        class="font-mono font-bold"
-                        [ngClass]="{
-                            'text-red-600': p.daysToProbeEnd < 90,
-                            'text-amber-600': p.daysToProbeEnd >= 90 && p.daysToProbeEnd < 365,
-                            'text-slate-600': p.daysToProbeEnd >= 365 && p.daysToProbeEnd < 600,
-                            'text-green-600': p.daysToProbeEnd >= 600
-                        }"
-                    >
-                        {{ p.daysToProbeEnd }}
-                    </span>
-                    <span class="text-xs text-slate-400">днів</span>
-                </div>
-                
-                <span *ngIf="p.daysToProbeEnd === -9999" class="text-slate-300">-</span>
-            </td>
-
-            <td>
-                <div class="flex flex-col text-sm">
-                    <span>{{ p.phone }}</span>
-                    <span class="text-slate-500 text-xs">{{ p.email }}</span>
-                </div>
-            </td>
-            
-            <td>
-                <p-tag [value]="p.isProbeOpen ? 'Відкрита' : 'Закрита'" [severity]="getSeverity(p.isProbeOpen)" />
-            </td>
-            <td>
-                <i class="pi" [ngClass]="{'pi-check-circle text-green-500': p.isFormFilled, 'pi-times-circle text-red-400': !p.isFormFilled}"></i>
-            </td>
-            <td>
-                <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" />
-            </td>
-        </tr>
-    </ng-template>
-        
-        <ng-template pTemplate="emptymessage">
+        <ng-template pTemplate="header">
             <tr>
-                <td colspan="6" class="text-center p-4">Даних немає. Завантажте CSV файл.</td>
+                <th pSortableColumn="kurin">Курінь <p-sortIcon field="kurin"/></th>
+                <th pSortableColumn="fullName">ПІБ <p-sortIcon field="fullName"/></th>
+                <th pSortableColumn="birthDate">Вік <p-sortIcon field="birthDate"/></th>
+                <th pSortableColumn="daysToProbeEnd">Кінець проби <p-sortIcon field="daysToProbeEnd"/></th>
+                <th>Контакти</th>
+                <th>Статуси</th>
+                <th>Дії</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-p>
+            <tr>
+                <td>{{ p.kurin }}</td>
+                <td class="font-semibold">{{ p.fullName }}</td>
+                <td>
+                    <span class="font-bold text-slate-700">{{ p.birthDate | age }}</span>
+                </td>
+                
+                <td>
+                    <p-tag *ngIf="p.daysToProbeEnd <= 0" severity="secondary" value="Завершено" />
+                    
+                    <div *ngIf="p.daysToProbeEnd > 0" class="flex items-center gap-2">
+                         <span 
+                            class="font-mono font-bold"
+                            [ngClass]="{
+                                'text-red-600': p.daysToProbeEnd < 90,
+                                'text-amber-600': p.daysToProbeEnd >= 90 && p.daysToProbeEnd < 365,
+                                'text-green-600': p.daysToProbeEnd >= 600
+                            }"
+                        >
+                            {{ p.daysToProbeEnd }}
+                        </span>
+                        <span class="text-xs text-slate-400">днів</span>
+                    </div>
+                    <span *ngIf="p.daysToProbeEnd === -9999" class="text-slate-300">-</span>
+                </td>
+
+                <td>
+                    <div class="flex flex-col text-sm">
+                        <span>{{ p.phone }}</span>
+                        <span class="text-slate-500 text-xs">{{ p.email }}</span>
+                    </div>
+                </td>
+                
+                <td>
+                    <div class="flex gap-2">
+                        <i class="pi" [ngClass]="p.isProbeOpen ? 'pi-lock-open text-green-500' : 'pi-lock text-slate-300'" [pTooltip]="p.isProbeOpen ? 'Проба відкрита' : 'Проба закрита'"></i>
+                        <i class="pi" [ngClass]="p.isFormFilled ? 'pi-file-check text-green-500' : 'pi-file text-slate-300'" [pTooltip]="p.isFormFilled ? 'Форма заповнена' : 'Форма не заповнена'"></i>
+                        <i class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope-open-text text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="flex gap-2">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" (onClick)="openEdit(p)" />
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="delete($event, p)" />
+                    </div>
+                </td>
             </tr>
         </ng-template>
     </p-table>
 </div>
+
+<p-drawer 
+    [(visible)]="drawerVisible" 
+    position="right" 
+    [style]="{ width: '450px' }"
+    [header]="isEditMode() ? 'Редагування' : 'Новий учасник'"
+>
+    <div class="flex flex-col gap-4" [formGroup]="form">
+        
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">ПІБ *</label>
+            <input pInputText formControlName="fullName" fluid />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="font-semibold">Курінь</label>
+                <input pInputText type="number" formControlName="kurin" fluid />
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="font-semibold">Дата народження</label>
+                <p-datepicker formControlName="birthDate" dateFormat="dd.mm.yy" appendTo="body" showIcon iconDisplay="input" fluid />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">Email *</label>
+            <input pInputText formControlName="email" fluid />
+        </div>
+        
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">Телефон</label>
+            <input pInputText formControlName="phone" fluid />
+        </div>
+
+        <div class="grid grid-cols-1 gap-2 border p-3 rounded-lg bg-slate-50">
+            <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isProbeOpen" binary="true" inputId="chk1" />
+                <label for="chk1">Проба відкрита</label>
+            </div>
+            <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isFormFilled" binary="true" inputId="chk2" />
+                <label for="chk2">Форма заповнена</label>
+            </div>
+             <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isMotivationLetterWritten" binary="true" inputId="chk3" />
+                <label for="chk3">Лист написаний</label>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">Дата відкриття проби</label>
+            <p-datepicker formControlName="probeOpenDate" dateFormat="dd.mm.yy" appendTo="body" showIcon iconDisplay="input" fluid />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">Нотатки</label>
+            <textarea pTextarea formControlName="notes" rows="4" autoResize="true" fluid></textarea>
+        </div>
+    </div>
+
+    <ng-template #footer>
+        <div class="flex justify-end gap-2">
+            <p-button label="Скасувати" severity="secondary" (onClick)="drawerVisible.set(false)" />
+            <p-button label="Зберегти" (onClick)="save()" [disabled]="form.invalid" />
+        </div>
+    </ng-template>
+</p-drawer>

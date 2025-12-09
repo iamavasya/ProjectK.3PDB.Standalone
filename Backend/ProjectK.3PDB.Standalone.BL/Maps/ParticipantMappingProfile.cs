@@ -15,7 +15,10 @@ public class ParticipantMappingProfile : Profile
 {
     public ParticipantMappingProfile()
     {
-        CreateMap<Participant, ParticipantDto>().ReverseMap();
+        CreateMap<Participant, ParticipantDto>();
+        CreateMap<ParticipantDto, Participant>()
+            .ForMember(dest => dest.ParticipantKey, opt => opt.Ignore())
+            .ForMember(dest => dest.History, opt => opt.Ignore());
         CreateMap<ParticipantHistory, ParticipantHistoryDto>().ReverseMap();
     }
 }

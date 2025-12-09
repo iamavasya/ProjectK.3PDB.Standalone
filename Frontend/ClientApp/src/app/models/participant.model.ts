@@ -1,6 +1,6 @@
 export interface ParticipantHistory {
-  id: number;
-  participantId: number;
+  participantHistoryKey: string;
+  participantKey: string;
   propertyName: string;
   oldValue: string | null;
   newValue: string | null;
@@ -8,7 +8,7 @@ export interface ParticipantHistory {
 }
 
 export interface Participant {
-  id: number;
+  participantKey: string;
   fullName: string;
   kurin: number | null;
   email: string;

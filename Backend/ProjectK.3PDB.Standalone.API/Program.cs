@@ -1,8 +1,8 @@
 using AutoMapper.EquivalencyExpression;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
+using System.Diagnostics;
 
 namespace ProjectK._3PDB.Standalone.API
 {
@@ -40,6 +40,9 @@ namespace ProjectK._3PDB.Standalone.API
                 });
             });
 
+            builder.Services.AddSingleton<BrowserLifeTimeManager>();
+            builder.Services.AddHostedService(provider => provider.GetRequiredService<BrowserLifeTimeManager>());
+
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
@@ -52,12 +55,86 @@ namespace ProjectK._3PDB.Standalone.API
 
             app.UseCors("AllowFrontend");
 
+            app.MapControllers();
+
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.MapControllers();
 
-            app.Run();
+
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseDefaultFiles();
+                app.UseStaticFiles();
+                app.MapFallbackToFile("index.html");
+                app.MapPost("/api/kill", (BrowserLifeTimeManager manager) =>
+                {
+                    manager.Kill();
+                    return Results.Ok();
+                });
+                var url = "http://localhost:5220";
+
+                Task.Delay(1000).ContinueWith(t => OpenBrowser(url));
+                app.Run("http://localhost:5220");
+            }
+            else
+            {
+                app.Run();
+            }
+
         }
+
+        private static void OpenBrowser(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "msedge",
+                    Arguments = $"--app={url}",
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "chrome",
+                        Arguments = $"--app={url}",
+                        UseShellExecute = true
+                    });
+                }
+                catch
+                {
+                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                }
+            }
+        }
+    }
+
+    public class BrowserLifeTimeManager : IHostedService
+    {
+        private readonly IHostApplicationLifetime _lifetime;
+
+        public BrowserLifeTimeManager(IHostApplicationLifetime lifetime)
+        {
+            _lifetime = lifetime;
+        }
+
+        public void Kill()
+        {
+            _lifetime.StopApplication();
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Task.Delay(TimeSpan.FromHours(24)).ContinueWith(_ => _lifetime.StopApplication());
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 }

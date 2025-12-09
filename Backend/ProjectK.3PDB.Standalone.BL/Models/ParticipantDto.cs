@@ -2,7 +2,7 @@
 
 public class ParticipantDto
 {
-    public Guid ParticipantKey { get; set; }
+    public Guid? ParticipantKey { get; set; }
     public string FullName { get; set; }
     public int? Kurin { get; set; }
     public string Email { get; set; }
@@ -17,7 +17,7 @@ public class ParticipantDto
     public DateTime? ProbeOpenDate { get; set; }
     public DateTime? BirthDate { get; set; }
 
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
 
     public List<ParticipantHistoryDto> History { get; set; } = new();
 }
