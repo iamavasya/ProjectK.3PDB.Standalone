@@ -65,7 +65,18 @@ namespace ProjectK._3PDB.Standalone.API
             if (!app.Environment.IsDevelopment())
             {
                 app.UseDefaultFiles();
-                app.UseStaticFiles();
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    OnPrepareResponse = ctx =>
+                    {
+                        if (ctx.File.Name == "index.html")
+                        {
+                            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+                            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+                            ctx.Context.Response.Headers.Append("Expires", "0");
+                        }
+                    }
+                });
                 app.MapFallbackToFile("index.html");
                 app.MapPost("/api/kill", (BrowserLifeTimeManager manager) =>
                 {
