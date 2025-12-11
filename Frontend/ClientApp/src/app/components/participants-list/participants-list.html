@@ -27,7 +27,7 @@
         [paginator]="true" 
         [rows]="10"
         [loading]="loading()"
-        [globalFilterFields]="['fullName', 'email', 'kurin']"
+        [globalFilterFields]="['fullName', 'email', 'kurin', 'phone']"
         [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
         #dt1
         styleClass="p-datatable-sm"
@@ -40,7 +40,7 @@
                     <input 
                         pInputText 
                         type="text" 
-                        (input)="dt1.filterGlobal($any($event.target).value, 'contains')" 
+                        (input)="onGlobalFilter(dt1, $event)" 
                         placeholder="Пошук..." 
                     />
                 </p-iconfield>
@@ -61,8 +61,8 @@
 
         <ng-template pTemplate="body" let-p>
             <tr>
-                <td>{{ p.kurin }}</td>
-                <td class="font-semibold">{{ p.fullName }}</td>
+                <td [innerHTML]="p.kurin | highlight: searchValue()"></td>
+                <td class="font-semibold" [innerHTML]="p.fullName | highlight: searchValue()"></td>
                 <td>
                     <span class="font-bold text-slate-700">{{ p.birthDate | age }}</span>
                 </td>
@@ -88,16 +88,16 @@
 
                 <td>
                     <div class="flex flex-col text-sm">
-                        <span>{{ p.phone }}</span>
-                        <span class="text-slate-500 text-xs">{{ p.email }}</span>
+                        <span [innerHTML]="p.phone | highlight: searchValue()"></span>
+                        <span class="text-slate-500 text-xs" [innerHTML]="p.email | highlight: searchValue()"></span>
                     </div>
                 </td>
                 
                 <td>
                     <div class="flex gap-2">
-                        <i class="pi" [ngClass]="p.isProbeOpen ? 'pi-lock-open text-green-500' : 'pi-lock text-slate-300'" [pTooltip]="p.isProbeOpen ? 'Проба відкрита' : 'Проба закрита'"></i>
-                        <i class="pi" [ngClass]="p.isFormFilled ? 'pi-file-check text-green-500' : 'pi-file text-slate-300'" [pTooltip]="p.isFormFilled ? 'Форма заповнена' : 'Форма не заповнена'"></i>
                         <i class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope-open-text text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
+                        <i class="pi" [ngClass]="p.isFormFilled ? 'pi-file-check text-green-500' : 'pi-file text-slate-300'" [pTooltip]="p.isFormFilled ? 'Форма заповнена' : 'Форма не заповнена'"></i>
+                        <i class="pi" [ngClass]="p.isProbeOpen ? 'pi-lock-open text-green-500' : 'pi-lock text-slate-300'" [pTooltip]="p.isProbeOpen ? 'Проба відкрита' : 'Проба закрита'"></i>
                     </div>
                 </td>
 

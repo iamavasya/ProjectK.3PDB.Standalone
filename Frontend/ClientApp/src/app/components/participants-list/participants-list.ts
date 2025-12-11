@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
@@ -22,6 +22,7 @@ import { Participant } from '../../models/participant.model';
 import { AgePipe } from '../../pipes/age.pipe';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
+import { HighlightPipe } from '../../pipes/highlight.pipe';
 
 @Component({
   selector: 'app-participants-list',
@@ -44,7 +45,8 @@ import { TooltipModule } from 'primeng/tooltip';
     DatePicker,
     Checkbox,
     Textarea,
-    TooltipModule
+    TooltipModule,
+    HighlightPipe
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './participants-list.html',
@@ -265,4 +267,11 @@ export class ParticipantsListComponent implements OnInit {
       dateControl?.updateValueAndValidity();
     });
   }
+
+  onGlobalFilter(table: Table, event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchValue.set(value); // Зберігаємо для хайлайту
+    table.filterGlobal(value, 'contains'); // Фільтруємо таблицю
+  }
+
 }

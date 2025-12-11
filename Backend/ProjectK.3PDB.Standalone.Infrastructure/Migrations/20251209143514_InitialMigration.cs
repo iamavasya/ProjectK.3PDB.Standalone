@@ -1,13 +1,12 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace ProjectK._3PDB.Standalone.Infrastructure.Migrations
 {
-    /    public partial class InitialMigration : Migration
+    public partial class InitialMigration : Migration
     {
-        /        protected override void Up(MigrationBuilder migrationBuilder)
+        protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "Participants",
@@ -60,7 +59,7 @@ namespace ProjectK._3PDB.Standalone.Infrastructure.Migrations
                 column: "ParticipantKey");
         }
 
-        /        protected override void Down(MigrationBuilder migrationBuilder)
+        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "ParticipantHistories");
