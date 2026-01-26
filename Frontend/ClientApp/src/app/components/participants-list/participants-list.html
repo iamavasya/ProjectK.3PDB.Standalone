@@ -16,7 +16,16 @@
                 maxFileSize="1000000" 
                 (onSelect)="onFileSelect($event)" 
                 [auto]="true" 
-                severity="help" />
+                severity="help" 
+            />
+
+            <p-button
+                label="Експорт"
+                icon="pi pi-file-export"
+                severity="help"
+                (onClick)="exportCsv()"
+            />
+
                 
             <p-button icon="pi pi-refresh" (onClick)="loadData()" variant="outlined" />
         </div>

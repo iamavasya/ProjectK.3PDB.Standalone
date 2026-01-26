@@ -7,6 +7,8 @@ using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using ProjectK._3PDB.Standalone.Infrastructure.CsvMaps;
 using ProjectK._3PDB.Standalone.Infrastructure.Entities;
 using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ProjectK._3PDB.Standalone.BL.Services
 {
@@ -51,6 +53,25 @@ namespace ProjectK._3PDB.Standalone.BL.Services
 
             await _context.Participants.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<byte[]> ExportCsvAsync()
+        {
+            var entities = await _context.Participants.OrderBy(x => x.Kurin).ThenBy(x => x.FullName).ToListAsync();
+
+            var dtos = _mapper.Map<List<ParticipantDto>>(entities);
+
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream, Encoding.UTF8);
+
+            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+
+            csvWriter.Context.RegisterClassMap<ParticipantCsvMap>();
+            csvWriter.WriteRecords(dtos);
+
+            streamWriter.Flush();
+
+            return memoryStream.ToArray();
         }
 
         public async Task UpdateAsync(ParticipantDto dto)

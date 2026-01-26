@@ -51,6 +51,15 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             }
         }
 
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportCsv()
+        {
+            var fileBytes = await _service.ExportCsvAsync();
+            var fileName = $"participants_{DateTime.Now:yyyy-MM-dd_HH-mm}.csv";
+
+            return File(fileBytes, "text/csv", fileName);
+        }
+
         [HttpPut("{participantKey:guid}")]
         public async Task<IActionResult> Update(Guid participantKey, [FromBody] ParticipantDto participant)
         {

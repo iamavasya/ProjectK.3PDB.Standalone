@@ -228,6 +228,26 @@ export class ParticipantsListComponent implements OnInit {
       });
     }
   }
+
+  exportCsv() {
+    this.service.exportCsv().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+
+        const date = new Date().toISOString().slice(0, 10);
+        a.download = `3pdb_export_${date}.csv`;
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Export failed', err)
+    })
+  }
   
   getSeverity(status: boolean): "success" | "danger" {
     return status ? 'success' : 'danger'; 

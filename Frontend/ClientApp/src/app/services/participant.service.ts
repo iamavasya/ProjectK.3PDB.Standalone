@@ -40,6 +40,10 @@ export class ParticipantService {
     formData.append('file', file);
     return this.http.post(`${this.apiUrl}/import`, formData);
   }
+
+  exportCsv(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' });
+  }
   
   
   downloadDb(): void {
