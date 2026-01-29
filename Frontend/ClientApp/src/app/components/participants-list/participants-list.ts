@@ -23,6 +23,7 @@ import { AgePipe } from '../../pipes/age.pipe';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { HighlightPipe } from '../../pipes/highlight.pipe';
+import { formatDateToISO } from '../../functions/formatDateToISO.function';
 
 @Component({
   selector: 'app-participants-list',
@@ -173,6 +174,8 @@ export class ParticipantsListComponent implements OnInit {
       isFormFilled: !!rawValue.isFormFilled,
       isProbeContinued: !!rawValue.isProbeContinued,
       isProbeFrozen: !!rawValue.isProbeFrozen,
+
+      probeOpenDate: formatDateToISO(rawValue.probeOpenDate),
 
       kurin: rawValue.kurin ? Number(rawValue.kurin) : null
     }
