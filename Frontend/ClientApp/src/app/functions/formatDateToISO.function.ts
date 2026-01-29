@@ -2,15 +2,15 @@
  * Returns a date string in YYYY-MM-DD format based on local time.
  * This avoids UTC timezone shifts during serialization.
  */
-export function formatDateToISO(date: Date | string | null | undefined): string {
-  if (!date) return '';
+export function formatDateToISO(date: Date | string | null | undefined): string | null {
+  if (!date) return null;
 
   const d = new Date(date);
   
   // Check for "Invalid Date"
   if (isNaN(d.getTime())) {
     console.error('formatDateToISO: Invalid date provided', date);
-    return '';
+    return null;
   }
 
   // Quick fix: Using 'sv-SE' locale to force YYYY-MM-DD format.
