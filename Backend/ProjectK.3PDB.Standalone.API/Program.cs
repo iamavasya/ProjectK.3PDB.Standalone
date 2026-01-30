@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using System.Diagnostics;
+using Velopack;
 
 namespace ProjectK._3PDB.Standalone.API
 {
@@ -10,6 +11,8 @@ namespace ProjectK._3PDB.Standalone.API
     {
         public static void Main(string[] args)
         {
+            VelopackApp.Build().Run();
+
             var builder = WebApplication.CreateBuilder(args);
 
             var dbPath = Path.Combine(AppContext.BaseDirectory, "projectk_3pdb_standalone_v2.db");
@@ -41,6 +44,8 @@ namespace ProjectK._3PDB.Standalone.API
             });
 
             builder.Services.AddSingleton<BrowserLifeTimeManager>();
+            builder.Services.AddSingleton<UpdateService>();
+
             builder.Services.AddHostedService(provider => provider.GetRequiredService<BrowserLifeTimeManager>());
 
             var app = builder.Build();

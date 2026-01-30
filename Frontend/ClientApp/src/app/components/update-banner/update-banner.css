@@ -1,0 +1,12 @@
+:host ::ng-deep p-message .p-message-content-wrapper {
+    width: 100% !important;
+    display: flex;
+}
+
+:host ::ng-deep p-message .p-message-content {
+    width: 100%;
+}
+
+:host ::ng-deep p-message .p-message-text {
+    width: 100%;
+}

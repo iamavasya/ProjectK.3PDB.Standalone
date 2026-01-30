@@ -1,0 +1,34 @@
+@if (updateService.updateState$ | async; as state) {
+
+    @if (state !== 'idle' && !isDismissed) {
+        <p-message class="flex w-auto m-4" severity="warn">
+            <div class="flex items-center">
+                <div class="w-full flex items-center justify-center gap-3">
+                    @if (state === 'available') {
+                        <div>
+                            🚀
+                        </div>
+                        <div>
+                            Доступна нова версія <span class="font-bold">{{ updateService.newVersion$ | async }}.</span>
+                            Рекомендуємо оновитися для отримання нових функцій та покращень.
+                        </div>
+                        <p-button size="small" severity="warn" outlined="true" label="Завантажити" icon="pi pi-download" (onClick)="startDownload()"></p-button>
+                    }
+                    @else if (state === 'downloading') {
+                        Завантаження оновлення...
+                    }
+                    @else if (state === 'ready') {
+                        Оновлення готове.
+                        <p-button size="small" severity="success" outlined="true" label="Перезапустити" icon="pi pi-refresh" (onClick)="restart()"></p-button>
+                    }
+                </div>
+                
+                @if (state !== 'downloading') {
+                    <div class="ml-auto">
+                        <p-button [rounded]="true" size="small" variant="text" severity="warn" icon="pi pi-times" (onClick)="dismiss()"></p-button>
+                    </div>
+                }
+            </div>
+        </p-message>
+    }
+}

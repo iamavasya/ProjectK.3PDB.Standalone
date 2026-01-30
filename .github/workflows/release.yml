@@ -1,0 +1,48 @@
+name: Publish 3PDB Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Install Velopack Tool
+      run: dotnet tool install -g vpk
+
+    - name: Get Version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Publish .NET App
+      run: dotnet publish "ProjectK.3PDB.Standalone/Backend/ProjectK.3PDB.Standalone.API" -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o .\publish
+
+    - name: Pack with Velopack
+      id: pack
+      run: vpk pack -u ProjectK3PDB -v ${{ env.VERSION }} -p .\publish -e ProjectK.3PDB.Standalone.API.exe
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          Releases/*.nupkg
+          Releases/*.exe
+          Releases/RELEASES
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
