@@ -3,8 +3,9 @@ import { RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ParticipantsListComponent } from './components/participants-list/participants-list';
 import { HttpClient } from '@angular/common/http';
-import { UpdateBanner } from './components/update-banner/update-banner';
 import { VersionFooter } from './components/version-footer/version-footer';
+import { UpdateService } from './services/update.service';
+import { UpdateBanner } from './components/update-banner/update-banner';
 
 @Component({
   selector: 'app-root',
@@ -12,11 +13,19 @@ import { VersionFooter } from './components/version-footer/version-footer';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('3pdbApp');
+  private updateService = inject(UpdateService);
 
   @HostListener('window:beforeunload') 
   onBeforeUnload() {
     navigator.sendBeacon('http://localhost:5220/api/kill');
+  }
+
+  ngOnInit() {
+    this.updateService.check().subscribe({
+      next: (res) => { console.log('Update check result:', res); },
+      error: (err) => { console.error('Update check error:', err); }
+    });
   }
 }
