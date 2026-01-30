@@ -30,7 +30,7 @@ jobs:
       shell: bash
 
     - name: Publish .NET App
-      run: dotnet publish "ProjectK.3PDB.Standalone/Backend/ProjectK.3PDB.Standalone.API" -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o .\publish
+      run: dotnet publish "Backend/ProjectK.3PDB.Standalone.API" -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:Version=${{ env.VERSION }} -o .\publish
 
     - name: Pack with Velopack
       id: pack
