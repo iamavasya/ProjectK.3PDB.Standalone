@@ -44,5 +44,6 @@ jobs:
           Releases/*.nupkg
           Releases/*.exe
           Releases/RELEASES
+          Releases/releases.win.json
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

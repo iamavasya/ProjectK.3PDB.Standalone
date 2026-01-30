@@ -13,7 +13,11 @@ import { ButtonModule } from 'primeng/button';
 export class UpdateBanner {
   isDismissed = false;
 
-  constructor(public updateService: UpdateService) {}
+  updateState$;
+
+  constructor(public updateService: UpdateService) {
+    this.updateState$ = this.updateService.updateState$;
+  }
 
   startDownload() {
     this.updateService.download().subscribe();

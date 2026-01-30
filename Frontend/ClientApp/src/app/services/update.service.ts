@@ -1,7 +1,7 @@
 // update.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, catchError, filter, interval, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, filter, interval, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../environments/environment';
 
 export interface CheckResult {
@@ -25,45 +25,49 @@ export class UpdateService {
 
   private init() {
     this.http.get<{ version: string }>(`${this.apiUrl}/current-version`)
-      .subscribe(res => {
-        this.currentVersion$.next(res.version)
+      .subscribe({
+        next: res => this.currentVersion$.next(res.version),
+        error: () => this.currentVersion$.next('Unknown')
       });
 
-      interval(3600000)
+    timer(0, 3600000) 
       .pipe(
-        filter(() => 
-          this.updateState$.value == 'idle'
-        ), 
-        switchMap(() => 
-          this.check()
-            .pipe(
-              catchError(err => 
-                of({ available: false, version: 'error' })
-              )
-            )
-          )
-        )
-      .subscribe(res => { 
-          if (res.available && res.version) {
-            this.newVersion$.next(res.version);
-            this.updateState$.next('available');
-          }
-        }
-      );
+        filter(() => this.updateState$.value === 'idle'),
+        switchMap(() => this.check().pipe(
+           catchError(() => of({ available: false }))
+        ))
+      )
+      .subscribe();
   }
 
   check(): Observable<CheckResult> {
-    return this.http.get<CheckResult>(`${this.apiUrl}/check`);
+    return this.http.get<CheckResult>(`${this.apiUrl}/check`).pipe(
+      tap(res => {
+        if (res.available && res.version) {
+          console.log('UpdateService: New version found!', res.version);
+          this.newVersion$.next(res.version);
+          this.updateState$.next('available');
+        } else {
+          this.updateState$.next('idle');
+          console.log('UpdateService: No new version available.');
+        }
+      })
+    );
   }
 
   download(): Observable<any> {
     this.updateState$.next('downloading');
-    return this.http.post(`${this.apiUrl}/download`, {})
-      .pipe(
-        tap(() => 
-          this.updateState$.next('ready')
-        )
-      );
+    
+    return this.http.post(`${this.apiUrl}/download`, {}).pipe(
+      tap(() => {
+        this.updateState$.next('ready');
+      }),
+      catchError(err => {
+        console.error('Download failed', err);
+        this.updateState$.next('available');
+        throw err;
+      })
+    );
   }
 
   apply(): Observable<any> {
