@@ -16,7 +16,7 @@ namespace ProjectK._3PDB.Standalone.API
             var builder = WebApplication.CreateBuilder(args);
 
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appFolder = Path.Combine(localAppData, "ProjectK3PDB");
+            var appFolder = Path.Combine(localAppData, "ProjectK3PDB", "data");
             if (!Directory.Exists(appFolder))
             {
                 Directory.CreateDirectory(appFolder);
