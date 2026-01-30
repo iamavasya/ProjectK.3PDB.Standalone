@@ -15,7 +15,15 @@ namespace ProjectK._3PDB.Standalone.API
 
             var builder = WebApplication.CreateBuilder(args);
 
-            var dbPath = Path.Combine(AppContext.BaseDirectory, "projectk_3pdb_standalone_v2.db");
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var appFolder = Path.Combine(localAppData, "ProjectK3PDB");
+            if (!Directory.Exists(appFolder))
+            {
+                Directory.CreateDirectory(appFolder);
+            }
+
+            var dbPath = Path.Combine(appFolder, "projectk_3pdb_standalone_v2.db");
+
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
 
