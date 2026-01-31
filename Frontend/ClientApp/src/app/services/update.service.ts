@@ -71,6 +71,16 @@ export class UpdateService {
   }
 
   apply(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/apply`, {});
+    this.updateState$.next('restarting');
+    return this.http.post(`${this.apiUrl}/apply`, {}).pipe(
+      tap(() => {
+        this.updateState$.next('idle');
+      }),
+      catchError(err => {
+        console.error('Apply failed', err);
+        this.updateState$.next('ready');
+        throw err;
+      })
+    );
   }
 }
