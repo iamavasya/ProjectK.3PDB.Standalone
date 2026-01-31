@@ -9,7 +9,7 @@ export interface CheckResult {
   version?: string;
 }
 
-export type UpdateState = 'idle' | 'available' | 'downloading' | 'ready';
+export type UpdateState = 'idle' | 'available' | 'downloading' | 'ready' | 'restarting';
 
 @Injectable({ providedIn: 'root' })
 export class UpdateService {

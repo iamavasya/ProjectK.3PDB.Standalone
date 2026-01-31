@@ -25,6 +25,15 @@ export class UpdateBanner {
 
   restart() {
     this.updateService.apply().subscribe();
+    this.updateService.updateState$.next('restarting');
+    
+    this.reloadUntilUp();
+  }
+
+  private reloadUntilUp() {
+    setInterval(() => {
+        window.location.reload();
+    }, 1000);
   }
 
   dismiss() {

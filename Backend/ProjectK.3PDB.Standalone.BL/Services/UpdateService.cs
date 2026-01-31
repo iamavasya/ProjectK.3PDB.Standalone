@@ -56,7 +56,7 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             if (_foundUpdate == null) return;
 
             var mgr = new UpdateManager(new GithubSource(_githubUrl, null, false));
-            mgr.ApplyUpdatesAndRestart(_foundUpdate.TargetFullRelease);
+            mgr.ApplyUpdatesAndRestart(_foundUpdate.TargetFullRelease, new[] {"--restarted"});
         }
 
         public static string GetCurrentVersion()

@@ -1,4 +1,4 @@
-using AutoMapper.EquivalencyExpression;
+﻿using AutoMapper.EquivalencyExpression;
 using Microsoft.EntityFrameworkCore;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
@@ -91,15 +91,31 @@ namespace ProjectK._3PDB.Standalone.API
                     }
                 });
                 app.MapFallbackToFile("index.html");
+                
                 app.MapPost("/api/kill", (BrowserLifeTimeManager manager) =>
                 {
-                    manager.Kill();
+                    manager.ScheduleShutdown();
                     return Results.Ok();
                 });
+
+                app.MapPost("/api/alive", (BrowserLifeTimeManager manager) =>
+                {
+                    manager.CancelShutdown();
+                    return Results.Ok();
+                });
+
                 var url = "http://localhost:5220";
 
-                Task.Delay(1000).ContinueWith(t => OpenBrowser(url));
-                app.Run("http://localhost:5220");
+                if (!args.Contains("--restarted"))
+                {
+                    Task.Delay(1000).ContinueWith(t => OpenBrowser(url));
+                    app.Run(url);
+                }
+                else
+                {
+                    Console.WriteLine("Restart detected. Skipping browser launch.");
+                    app.Run(url);
+                }
             }
             else
             {
@@ -141,21 +157,51 @@ namespace ProjectK._3PDB.Standalone.API
     public class BrowserLifeTimeManager : IHostedService
     {
         private readonly IHostApplicationLifetime _lifetime;
+        private readonly ILogger<BrowserLifeTimeManager> _logger;
+        private CancellationTokenSource? _shutdownCts;
 
-        public BrowserLifeTimeManager(IHostApplicationLifetime lifetime)
+        public BrowserLifeTimeManager(IHostApplicationLifetime lifetime, ILogger<BrowserLifeTimeManager> logger)
         {
             _lifetime = lifetime;
+            _logger = logger;
         }
 
-        public void Kill()
+        public void ScheduleShutdown()
         {
-            _lifetime.StopApplication();
+            _shutdownCts?.Cancel();
+            _shutdownCts = new CancellationTokenSource();
+            var token = _shutdownCts.Token;
+
+            _logger.LogWarning("Shutdown scheduled in 5 seconds...");
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(5000, token);
+
+                    if (!token.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("No heartbeat. Stopping application.");
+                        _lifetime.StopApplication();
+                    }
+                }
+                catch (TaskCanceledException) { }
+            });
+        }
+
+        public void CancelShutdown()
+        {
+            if (_shutdownCts != null && !_shutdownCts.IsCancellationRequested)
+            {
+                _logger.LogInformation("Heartbeat received! Shutdown cancelled.");
+                _shutdownCts.Cancel();
+            }
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Task.Delay(TimeSpan.FromHours(24)).ContinueWith(_ => _lifetime.StopApplication());
-
             return Task.CompletedTask;
         }
 

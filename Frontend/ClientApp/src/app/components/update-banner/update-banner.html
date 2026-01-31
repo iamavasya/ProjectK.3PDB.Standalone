@@ -21,9 +21,12 @@
                         Оновлення готове.
                         <p-button size="small" severity="success" outlined="true" label="Перезапустити" icon="pi pi-refresh" (onClick)="restart()"></p-button>
                     }
+                    @else if (state === 'restarting') {
+                        Оновлення застосунку... Зачекайте, будь ласка.
+                    }
                 </div>
                 
-                @if (state !== 'downloading') {
+                @if (state !== 'downloading' && state !== 'restarting') {
                     <div class="ml-auto">
                         <p-button [rounded]="true" size="small" variant="text" severity="warn" icon="pi pi-times" (onClick)="dismiss()"></p-button>
                     </div>
