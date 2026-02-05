@@ -9,7 +9,7 @@ namespace ProjectK._3PDB.Standalone.API
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             VelopackApp.Build().Run();
 
@@ -26,6 +26,8 @@ namespace ProjectK._3PDB.Standalone.API
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
+
+
 
             builder.Services.AddScoped<ParticipantService>();
 
@@ -61,7 +63,10 @@ namespace ProjectK._3PDB.Standalone.API
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.Database.EnsureCreated();
+
+                await EnsureMigrationHistoryAsync(db);
+
+                await db.Database.MigrateAsync();
             }
 
             app.UseRouting();
@@ -150,6 +155,58 @@ namespace ProjectK._3PDB.Standalone.API
                 {
                     Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
                 }
+            }
+        }
+
+        /// <summary>
+        /// Ensures the EF Core migration history table exists and is seeded for legacy databases
+        /// that contain the <c>Participants</c> table but lack the EF migrations history metadata.
+        /// </summary>
+        /// <param name="db">The application database context with an openable SQLite connection.</param>
+        /// <remarks>
+        /// This method:
+        /// <list type="bullet">
+        /// <item><description>Checks for the presence of the legacy <c>Participants</c> table.</description></item>
+        /// <item><description>Creates the <c>__EFMigrationsHistory</c> table if it is missing.</description></item>
+        /// <item><description>Seeds the history table with the initial migration if it is empty.</description></item>
+        /// </list>
+        /// It is intended to bridge older databases into EF Core's migration tracking without
+        /// rebuilding or losing data.
+        /// </remarks>
+        private static async Task EnsureMigrationHistoryAsync(AppDbContext db)
+        {
+            await db.Database.OpenConnectionAsync();
+            try
+            {
+                await using var command = db.Database.GetDbConnection().CreateCommand();
+
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='Participants';";
+                var participantsExists = (long)(await command.ExecuteScalarAsync() ?? 0) > 0;
+
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='__EFMigrationsHistory';";
+                var historyTableExists = (long)(await command.ExecuteScalarAsync() ?? 0) > 0;
+
+                if (participantsExists)
+                {
+                    if (!historyTableExists)
+                    {
+                        await db.Database.ExecuteSqlRawAsync(
+                            "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (\"MigrationId\" TEXT NOT NULL CONSTRAINT \"PK___EFMigrationsHistory\" PRIMARY KEY, \"ProductVersion\" TEXT NOT NULL);");
+                    }
+
+                    command.CommandText = "SELECT COUNT(*) FROM \"__EFMigrationsHistory\";";
+                    var historyCount = (long)(await command.ExecuteScalarAsync() ?? 0);
+
+                    if (historyCount == 0)
+                    {
+                        await db.Database.ExecuteSqlRawAsync(
+                            "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ('20251209143514_InitialMigration', '9.0.11');");
+                    }
+                }
+            }
+            finally
+            {
+                await db.Database.CloseConnectionAsync();
             }
         }
     }

@@ -20,6 +20,8 @@ export interface Participant {
   isFormFilled: boolean;
   isProbeContinued: boolean;
   isProbeFrozen: boolean;
+  isSelfReflectionSubmitted: boolean;
+  isArchived: boolean;
   
   
   probeOpenDate: string | null;

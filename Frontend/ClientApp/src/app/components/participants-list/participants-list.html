@@ -104,9 +104,11 @@
                 
                 <td>
                     <div class="flex gap-2">
-                        <i class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope-open-text text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
+                        <i class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
+                        <i class="pi" [ngClass]="p.isSelfReflectionSubmitted ? 'pi-check-circle text-green-500' : 'pi-times-circle text-slate-300'" [pTooltip]="p.isSelfReflectionSubmitted ? 'Саморефлексія подана' : 'Саморефлексія не подана'"></i>
                         <i class="pi" [ngClass]="p.isFormFilled ? 'pi-file-check text-green-500' : 'pi-file text-slate-300'" [pTooltip]="p.isFormFilled ? 'Форма заповнена' : 'Форма не заповнена'"></i>
                         <i class="pi" [ngClass]="p.isProbeOpen ? 'pi-lock-open text-green-500' : 'pi-lock text-slate-300'" [pTooltip]="p.isProbeOpen ? 'Проба відкрита' : 'Проба закрита'"></i>
+                        <i class="pi" [ngClass]="p.isArchived ? 'pi-file-excel text-red-500' : null" [pTooltip]="p.isArchived ? 'Архівований' : undefined"></i>
                     </div>
                 </td>
 
@@ -167,6 +169,14 @@
              <div class="flex items-center gap-2">
                 <p-checkbox formControlName="isMotivationLetterWritten" binary="true" inputId="chk3" />
                 <label for="chk3">Лист написаний</label>
+            </div>
+            <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isSelfReflectionSubmitted" binary="true" inputId="chk4" />
+                <label for="chk4">Саморефлексія подана</label>
+            </div>
+            <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isArchived" binary="true" inputId="chk5" />
+                <label for="chk5">Архівований</label>
             </div>
         </div>
 

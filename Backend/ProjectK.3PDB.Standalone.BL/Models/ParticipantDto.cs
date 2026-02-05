@@ -13,6 +13,8 @@ public class ParticipantDto
     public bool IsFormFilled { get; set; }
     public bool IsProbeContinued { get; set; }
     public bool IsProbeFrozen { get; set; }
+    public bool IsSelfReflectionSubmitted { get; set; }
+    public bool IsArchived { get; set; }
 
     public DateTime? ProbeOpenDate { get; set; }
     public DateTime? BirthDate { get; set; }

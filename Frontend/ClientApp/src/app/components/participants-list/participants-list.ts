@@ -99,6 +99,8 @@ export class ParticipantsListComponent implements OnInit {
       isFormFilled: [false],
       isProbeContinued: [false],
       isProbeFrozen: [false],
+      isSelfReflectionSubmitted: [false],
+      isArchived: [false],
       
       notes: ['']
     });
@@ -174,6 +176,8 @@ export class ParticipantsListComponent implements OnInit {
       isFormFilled: !!rawValue.isFormFilled,
       isProbeContinued: !!rawValue.isProbeContinued,
       isProbeFrozen: !!rawValue.isProbeFrozen,
+      isSelfReflectionSubmitted: !!rawValue.isSelfReflectionSubmitted,
+      isArchived: !!rawValue.isArchived,
 
       probeOpenDate: formatDateToISO(rawValue.probeOpenDate),
 

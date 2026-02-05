@@ -18,10 +18,12 @@ public class Participant
     public string Phone { get; set; }
 
     public bool IsProbeOpen { get; set; }
-    public bool IsMotivationLetterWritten { get; set; }
+    public bool IsMotivationLetterWritten { get; set; } = false;
     public bool IsFormFilled { get; set; }
     public bool IsProbeContinued { get; set; }
     public bool IsProbeFrozen { get; set; }
+    public bool IsSelfReflectionSubmitted { get; set; } = false;
+    public bool IsArchived { get; set; } = false;
 
     public DateTime? ProbeOpenDate { get; set;}
     public DateTime? BirthDate { get; set; }

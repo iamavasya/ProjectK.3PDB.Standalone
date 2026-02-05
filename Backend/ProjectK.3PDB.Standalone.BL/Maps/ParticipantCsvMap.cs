@@ -19,6 +19,8 @@ public sealed class ParticipantCsvMap : ClassMap<ParticipantDto>
         Map(m => m.IsFormFilled).Name("Заповнена форма");
         Map(m => m.IsProbeContinued).Name("Проба продовжувалася");
         Map(m => m.IsProbeFrozen).Name("Проба заморожувалася");
+        Map(m => m.IsSelfReflectionSubmitted).Name("Саморефлексія пройдена");
+        Map(m => m.IsArchived).Name("Архівний");
 
         Map(m => m.ProbeOpenDate).Name("Дата відкриття проби").TypeConverterOption.Format("dd.MM.yyyy")
             .TypeConverterOption.NullValues("-", "", " ");
