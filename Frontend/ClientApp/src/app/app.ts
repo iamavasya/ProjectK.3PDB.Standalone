@@ -25,10 +25,5 @@ export class App implements OnInit {
 
   ngOnInit() {
     this.http.post('http://localhost:5220/api/alive', {}).subscribe();
-    
-    this.updateService.check().subscribe({
-      next: (res) => { console.log('Update check result:', res); },
-      error: (err) => { console.error('Update check error:', err); }
-    });
   }
 }
