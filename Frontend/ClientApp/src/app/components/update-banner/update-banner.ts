@@ -32,7 +32,7 @@ export class UpdateBanner {
   private reloadUntilUp() {
     setInterval(() => {
         window.location.reload();
-    }, 5000);
+    }, 200);
   }
 
   dismiss() {

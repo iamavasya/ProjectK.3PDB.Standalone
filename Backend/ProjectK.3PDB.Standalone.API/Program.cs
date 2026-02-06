@@ -113,7 +113,7 @@ namespace ProjectK._3PDB.Standalone.API
 
                 if (!args.Contains("--restarted"))
                 {
-                    Task.Delay(1000).ContinueWith(t => OpenBrowser(url));
+                    Task.Delay(100).ContinueWith(t => OpenBrowser(url));
                     app.Run(url);
                 }
                 else
@@ -135,7 +135,7 @@ namespace ProjectK._3PDB.Standalone.API
             {
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "msedge",
+                    FileName = "chrome",
                     Arguments = $"--app={url}",
                     UseShellExecute = true
                 });
@@ -146,7 +146,7 @@ namespace ProjectK._3PDB.Standalone.API
                 {
                     Process.Start(new ProcessStartInfo
                     {
-                        FileName = "chrome",
+                        FileName = "msedge",
                         Arguments = $"--app={url}",
                         UseShellExecute = true
                     });

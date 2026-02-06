@@ -62,7 +62,12 @@ namespace ProjectK._3PDB.Standalone.BL.Services
         public static string GetCurrentVersion()
         {
             var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
-            return version ?? "0.0.0";
+            if (version == null)
+            {
+                return "0.0.0";
+            }
+            var parts = version.Split('.') ;
+            return parts.Length >= 3 ? string.Join(".", parts[0], parts[1], parts[2]) : "0.0.0";
         }
     }
 }
