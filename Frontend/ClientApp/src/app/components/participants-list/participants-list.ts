@@ -24,12 +24,13 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { HighlightPipe } from '../../pipes/highlight.pipe';
 import { formatDateToISO } from '../../functions/formatDateToISO.function';
+import { Header } from '../header/header';
 
 @Component({
   selector: 'app-participants-list',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     AgePipe,
     ReactiveFormsModule,
     FormsModule,
@@ -47,8 +48,9 @@ import { formatDateToISO } from '../../functions/formatDateToISO.function';
     Checkbox,
     Textarea,
     TooltipModule,
-    HighlightPipe
-  ],
+    HighlightPipe,
+    Header
+],
   providers: [MessageService, ConfirmationService],
   templateUrl: './participants-list.html',
   styleUrl: './participants-list.css' 
