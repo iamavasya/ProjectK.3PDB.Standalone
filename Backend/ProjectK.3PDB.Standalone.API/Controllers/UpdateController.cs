@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ProjectK._3PDB.Standalone.BL.Services;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 
 namespace ProjectK._3PDB.Standalone.API.Controllers
 {
@@ -8,9 +8,9 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
     [ApiController]
     public class UpdateController : ControllerBase
     {
-        private readonly UpdateService _updateService;
+        private readonly IUpdateService _updateService;
 
-        public UpdateController(UpdateService updateService)
+        public UpdateController(IUpdateService updateService)
         {
             _updateService = updateService;
         }
@@ -44,9 +44,9 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
         }
 
         [HttpGet("current-version")]
-        public async Task<IActionResult> GetCurrentVersion()
+        public ActionResult GetCurrentVersion()
         {
-            var version = UpdateService.GetCurrentVersion();
+            var version = _updateService.GetCurrentVersion();
             return Ok(new { version });
         }
 

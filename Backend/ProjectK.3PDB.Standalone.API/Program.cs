@@ -1,5 +1,6 @@
 ﻿using AutoMapper.EquivalencyExpression;
 using Microsoft.EntityFrameworkCore;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using System.Diagnostics;
@@ -27,10 +28,8 @@ namespace ProjectK._3PDB.Standalone.API
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
 
-
-
-            builder.Services.AddScoped<ParticipantService>();
-            builder.Services.AddScoped<ConfigService>();
+            builder.Services.AddScoped<IParticipantService, ParticipantService>();
+            builder.Services.AddScoped<IConfigService, ConfigService>();
 
             builder.Services.AddAutoMapper(cfg => { cfg.AddCollectionMappers(); }, typeof(BL.Maps.ParticipantMappingProfile));
 
@@ -55,7 +54,7 @@ namespace ProjectK._3PDB.Standalone.API
             });
 
             builder.Services.AddSingleton<BrowserLifeTimeManager>();
-            builder.Services.AddSingleton<UpdateService>();
+            builder.Services.AddSingleton<IUpdateService, UpdateService>();
 
             builder.Services.AddHostedService(provider => provider.GetRequiredService<BrowserLifeTimeManager>());
 

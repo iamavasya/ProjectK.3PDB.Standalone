@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using ProjectK._3PDB.Standalone.Infrastructure.Entities;
 
 namespace ProjectK._3PDB.Standalone.BL.Services;
 
-public class ConfigService
+public class ConfigService : IConfigService
 {
     private const int SingletonConfigKey = 1;
     private readonly AppDbContext _context;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 using ProjectK._3PDB.Standalone.BL.Models;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Entities;
@@ -9,14 +10,14 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
     [Route("api/[controller]")]
     public class ParticipantController : ControllerBase
     {
-        private readonly ParticipantService _service;
-        public ParticipantController(ParticipantService service)
+        private readonly IParticipantService _service;
+        public ParticipantController(IParticipantService service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ParticipantService>>> GetAll()
+        public async Task<ActionResult<List<ParticipantDto>>> GetAll()
         {
             var response = await _service.GetAllAsync();
             return Ok(response);

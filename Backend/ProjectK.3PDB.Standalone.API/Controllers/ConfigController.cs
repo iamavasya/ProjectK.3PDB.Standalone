@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProjectK._3PDB.Standalone.BL.Services;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 
 namespace ProjectK._3PDB.Standalone.API.Controllers
 {
@@ -7,9 +7,9 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
     [Route("api/[controller]")]
     public class ConfigController : ControllerBase
     {
-        private readonly ConfigService _configService;
+        private readonly IConfigService _configService;
 
-        public ConfigController(ConfigService configService)
+        public ConfigController(IConfigService configService)
         {
             _configService = configService;
         }

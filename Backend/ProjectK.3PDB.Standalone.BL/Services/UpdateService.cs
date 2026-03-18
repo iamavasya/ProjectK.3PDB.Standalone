@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 using Velopack;
 using Velopack.Sources;
 
 namespace ProjectK._3PDB.Standalone.BL.Services
 {
-    public class UpdateService
+    public class UpdateService : IUpdateService
     {
         private readonly ILogger<UpdateService> _logger;
         private readonly string _githubUrl = "https://github.com/iamavasya/ProjectK.3PDB.Standalone";
@@ -59,7 +60,7 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             mgr.ApplyUpdatesAndRestart(_foundUpdate.TargetFullRelease, new[] {"--restarted"});
         }
 
-        public static string GetCurrentVersion()
+        public string GetCurrentVersion()
         {
             var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
             if (version == null)

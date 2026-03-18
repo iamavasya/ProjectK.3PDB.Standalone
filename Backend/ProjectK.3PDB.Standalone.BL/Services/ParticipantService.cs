@@ -2,6 +2,7 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.EntityFrameworkCore;
+using ProjectK._3PDB.Standalone.BL.Interfaces;
 using ProjectK._3PDB.Standalone.BL.Models;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 using ProjectK._3PDB.Standalone.Infrastructure.CsvMaps;
@@ -12,7 +13,7 @@ using System.Text;
 
 namespace ProjectK._3PDB.Standalone.BL.Services
 {
-    public class ParticipantService
+    public class ParticipantService : IParticipantService
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
