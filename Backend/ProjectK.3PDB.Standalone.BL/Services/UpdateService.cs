@@ -69,5 +69,40 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             var parts = version.Split('.') ;
             return parts.Length >= 3 ? string.Join(".", parts[0], parts[1], parts[2]) : "0.0.0";
         }
+
+        public async Task<string> GetReleaseNotes(string version)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", "ProjectK.3PDB.Standalone");
+
+                // Ensure tag format vX.Y.Z
+                var tag = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}";
+                
+                var response = await client.GetAsync($"https://api.github.com/repos/iamavasya/ProjectK.3PDB.Standalone/releases/tags/{tag}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Release notes not found for tag {Tag}. Status: {Status}", tag, response.StatusCode);
+                    return "Release notes unavailable.";
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                
+                if (doc.RootElement.TryGetProperty("body", out var bodyElement))
+                {
+                    return bodyElement.GetString() ?? "No details provided.";
+                }
+                
+                return "Release notes format error.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to fetch release notes for version {Version}", version);
+                return "Could not load release notes.";
+            }
+        }
     }
 }

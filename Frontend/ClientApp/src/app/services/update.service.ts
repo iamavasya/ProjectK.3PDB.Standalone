@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, catchError, filter, interval, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { environment } from '../environments/environment';
@@ -17,6 +17,11 @@ export class UpdateService {
   public updateState$ = new BehaviorSubject<UpdateState>('idle');
   public newVersion$ = new BehaviorSubject<string | null>(null);
   public currentVersion$ = new BehaviorSubject<string>(' Loading...');
+  
+  public showChangelog = signal(false);
+  public releaseNotes = signal<string>('');
+  
+  private versionKey = 'appVersion';
 
   constructor(private http: HttpClient) {
     this.init();
@@ -25,9 +30,14 @@ export class UpdateService {
   private init() {
     this.http.get<{ version: string }>(`${this.apiUrl}/current-version`)
       .subscribe({
-        next: res => this.currentVersion$.next(res.version),
+        next: res => {
+            const serverVersion = res.version;
+            this.currentVersion$.next(serverVersion);
+            this.checkVersionChange(serverVersion);
+        },
         error: () => this.currentVersion$.next('Unknown')
       });
+
 
     timer(0, 3600000) 
       .pipe(
@@ -37,6 +47,51 @@ export class UpdateService {
         ))
       )
       .subscribe();
+  }
+
+  checkVersionChange(serverVersion: string) {
+    try {
+        const localVersion = localStorage.getItem(this.versionKey);
+        // If local version exists and differs from server version -> update happened!
+        if (localVersion && localVersion !== serverVersion) {
+            this.fetchReleaseNotes(serverVersion).subscribe(notes => {
+                this.releaseNotes.set(notes);
+                this.showChangelog.set(true);
+            });
+        }
+        // Update local version immediately or wait for user to close dialog? 
+        // Usually better to wait, BUT if they refresh page we don't want to lose the prompt if they didn't see it?
+        // Let's update it ONLY when they close the dialog (markChangelogSeen).
+        
+        // For first run (no local version), we might want to just set it without showing huge modal, 
+        // or show "Welcome". Let's assume we just set it silently for fresh install.
+        if (!localVersion) {
+            localStorage.setItem(this.versionKey, serverVersion);
+        }
+    } catch (e) {
+        console.warn('UpdateService: localStorage access failed', e);
+    }
+  }
+
+  fetchReleaseNotes(version: string): Observable<string> {
+    return this.http.get(`${this.apiUrl}/release-notes/${version}`, { responseType: 'text' });
+  }
+
+  
+  openManualChangelog() {
+      const current = this.currentVersion$.value;
+      this.fetchReleaseNotes(current).subscribe(notes => {
+          this.releaseNotes.set(notes);
+          this.showChangelog.set(true);
+      });
+  }
+  
+  markChangelogSeen() {
+    const currentVer = this.currentVersion$.value;
+    if (currentVer && currentVer !== 'Vehicle' && currentVer !== 'Unknown') {
+         localStorage.setItem(this.versionKey, currentVer);
+    }
+    this.showChangelog.set(false);
   }
 
   check(): Observable<CheckResult> {

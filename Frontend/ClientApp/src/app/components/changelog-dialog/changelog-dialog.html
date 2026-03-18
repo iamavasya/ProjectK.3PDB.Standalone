@@ -1,0 +1,17 @@
+<p-dialog 
+    header="Що нового ✨" 
+    [visible]="visible()" 
+    [modal]="true" 
+    [style]="{ width: '450px' }"
+    [draggable]="false" 
+    [resizable]="false"
+    (onHide)="close()">
+    
+    <div class="flex flex-col gap-4">
+        <div class="markdown-content" [innerHTML]="htmlContent()"></div>
+
+        <div class="flex justify-end gap-2 mt-4">
+            <p-button label="Зрозуміло" (onClick)="close()" [text]="true"></p-button>
+        </div>
+    </div>
+</p-dialog>

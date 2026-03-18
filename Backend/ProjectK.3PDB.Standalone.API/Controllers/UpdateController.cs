@@ -49,5 +49,12 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             var version = UpdateService.GetCurrentVersion();
             return Ok(new { version });
         }
+
+        [HttpGet("release-notes/{version}")]
+        public async Task<IActionResult> GetReleaseNotes(string version)
+        {
+            var notes = await _updateService.GetReleaseNotes(version);
+            return Ok(notes);
+        }
     }
 }

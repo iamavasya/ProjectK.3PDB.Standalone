@@ -1,34 +1,40 @@
 <div class="flex flex-col">
-    <div class="flex items-stretch gap-2 group">
-        <h1 class="text-2xl font-bold text-slate-800">База третьопробників <span *ngIf="titleSuffix() && !isEditing()" class="text-slate-500 font-normal ml-1">{{ titleSuffix() }}</span></h1>
-        
-        <div *ngIf="isEditing()" class="flex items-center gap-2">
-            <input 
-                pInputText
-                type="text"
-                [ngModel]="editValue()"
-                (ngModelChange)="editValue.set($event)"
-                (keydown.enter)="save()"
-                (keydown.escape)="cancelEdit()"
-                class="p-inputtext-sm h-8"
-                maxLength="50"
-                placeholder="Додатковий текст..."
-                autofocus
-            />
-            <p-button icon="pi pi-check" [rounded]="true" [text]="true" severity="success" (onClick)="save()" size="small" />
-            <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" (onClick)="cancelEdit()" size="small" />
-        </div>
-    
-        <p-button 
-            *ngIf="!isEditing()"
-            icon="pi pi-pencil" 
-            [rounded]="true" 
-            [text]="true" 
-            severity="secondary" 
-            (onClick)="toggleEdit()" 
-            size="small"
-            styleClass="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        />
+    <div class="group w-full">
+        <h1 class="text-2xl font-bold text-slate-800 leading-tight inline">
+            База третьопробників
+            
+            <span *ngIf="!isEditing()" class="inline-block whitespace-nowrap">
+                <span *ngIf="titleSuffix()" class="text-slate-500 font-normal"> {{ titleSuffix() }}</span>
+                
+                <span class="inline-block ml-2 align-middle opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <p-button 
+                        icon="pi pi-pencil" 
+                        [rounded]="true" 
+                        [text]="true" 
+                        severity="secondary" 
+                        (onClick)="toggleEdit()" 
+                        size="small"
+                    />
+                </span>
+            </span>
+            
+            <span *ngIf="isEditing()" class="inline-flex items-center gap-2 ml-2 align-middle font-normal">
+                <input 
+                    pInputText
+                    type="text"
+                    [ngModel]="editValue()"
+                    (ngModelChange)="editValue.set($event)"
+                    (keydown.enter)="save()"
+                    (keydown.escape)="cancelEdit()"
+                    class="p-inputtext-sm h-8"
+                    maxLength="50"
+                    placeholder="Додатковий текст..."
+                    autofocus
+                />
+                <p-button icon="pi pi-check" [rounded]="true" [text]="true" severity="success" (onClick)="save()" size="small" />
+                <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" (onClick)="cancelEdit()" size="small" />
+            </span>
+        </h1>
     </div>
     
     <p class="text-sm text-slate-400">
