@@ -1,0 +1,21 @@
+<div 
+    class="relative cursor-pointer select-none hover:text-[var(--p-primary-color)] transition-colors duration-200 flex items-center group"
+    (click)="copy()"
+    (mousedown)="$event.preventDefault()"
+>
+    <!-- Content to be displayed -->
+    <div 
+        class="transition-opacity duration-300 w-full"
+        [class.opacity-0]="isCopied()"
+    >
+        <ng-content></ng-content>
+        <span *ngIf="text() !== null && text() !== undefined">{{ text() }}</span>
+    </div>
+    
+    <!-- Success message overlay -->
+    <span 
+        class="absolute left-0 text-[var(--p-primary-color)] font-bold text-xs transition-opacity duration-300 pointer-events-none whitespace-nowrap"
+        [class.opacity-0]="!isCopied()"
+        [class.opacity-100]="isCopied()"
+    ><span class="animate-pulse">Скопійовано!</span></span>
+</div>

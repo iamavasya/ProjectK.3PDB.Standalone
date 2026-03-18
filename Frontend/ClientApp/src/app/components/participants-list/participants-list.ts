@@ -25,6 +25,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { HighlightPipe } from '../../pipes/highlight.pipe';
 import { formatDateToISO } from '../../functions/formatDateToISO.function';
 import { Header } from '../header/header';
+import { CopyText } from '../copy-text/copy-text';
 
 @Component({
   selector: 'app-participants-list',
@@ -49,7 +50,8 @@ import { Header } from '../header/header';
     Textarea,
     TooltipModule,
     HighlightPipe,
-    Header
+    Header,
+    CopyText
 ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './participants-list.html',
@@ -65,7 +67,6 @@ export class ParticipantsListComponent implements OnInit {
   participants = signal<Participant[]>([]);
   loading = signal<boolean>(true);
   searchValue = signal<string>('');
-
   
   drawerVisible = signal(false);
   isEditMode = signal(false);
@@ -127,8 +128,6 @@ export class ParticipantsListComponent implements OnInit {
       }
     });
   }
-
-  
 
   
   openCreate() {

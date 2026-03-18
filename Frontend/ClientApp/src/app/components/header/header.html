@@ -1,4 +1,37 @@
-<h1 class="text-2xl font-bold text-slate-800">База третьопробників</h1>
-<p class="text-sm text-slate-400">
-    Створено <a href="https://github.com/iamavasya" target="_blank" class="text-slate-400 hover:text-slate-700 transition-colors duration-300">Ростиславом Мухою</a>. {{ currentYear }} ©
-</p>
+<div class="flex flex-col">
+    <div class="flex items-stretch gap-2 group">
+        <h1 class="text-2xl font-bold text-slate-800">База третьопробників <span *ngIf="titleSuffix() && !isEditing()" class="text-slate-500 font-normal ml-1">{{ titleSuffix() }}</span></h1>
+        
+        <div *ngIf="isEditing()" class="flex items-center gap-2">
+            <input 
+                pInputText
+                type="text"
+                [ngModel]="editValue()"
+                (ngModelChange)="editValue.set($event)"
+                (keydown.enter)="save()"
+                (keydown.escape)="cancelEdit()"
+                class="p-inputtext-sm h-8"
+                maxLength="50"
+                placeholder="Додатковий текст..."
+                autofocus
+            />
+            <p-button icon="pi pi-check" [rounded]="true" [text]="true" severity="success" (onClick)="save()" size="small" />
+            <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="secondary" (onClick)="cancelEdit()" size="small" />
+        </div>
+    
+        <p-button 
+            *ngIf="!isEditing()"
+            icon="pi pi-pencil" 
+            [rounded]="true" 
+            [text]="true" 
+            severity="secondary" 
+            (onClick)="toggleEdit()" 
+            size="small"
+            styleClass="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        />
+    </div>
+    
+    <p class="text-sm text-slate-400">
+        Створено <a href="https://github.com/iamavasya" target="_blank" class="text-slate-400 hover:text-slate-700 transition-colors duration-300">Ростиславом Мухою</a>. {{ currentYear }} ©
+    </p>
+</div>

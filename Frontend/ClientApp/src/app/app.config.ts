@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
+import ThreePDBPreset from './preset/3pdbpreset';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -11,13 +11,14 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     providePrimeNG({
       theme: {
-        preset: Aura,
+        preset: ThreePDBPreset,
         options: {
           darkModeSelector: false,
           cssLayer: {
             name: 'primeng',
             order: 'theme, base, primeng'
           }
+
         },
       }
     })

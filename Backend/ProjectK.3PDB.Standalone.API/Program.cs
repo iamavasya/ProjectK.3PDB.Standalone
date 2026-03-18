@@ -30,6 +30,7 @@ namespace ProjectK._3PDB.Standalone.API
 
 
             builder.Services.AddScoped<ParticipantService>();
+            builder.Services.AddScoped<ConfigService>();
 
             builder.Services.AddAutoMapper(cfg => { cfg.AddCollectionMappers(); }, typeof(BL.Maps.ParticipantMappingProfile));
 

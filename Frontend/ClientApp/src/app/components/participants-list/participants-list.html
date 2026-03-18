@@ -71,7 +71,11 @@
         <ng-template pTemplate="body" let-p>
             <tr>
                 <td [innerHTML]="p.kurin | highlight: searchValue()"></td>
-                <td class="font-semibold" [innerHTML]="p.fullName | highlight: searchValue()"></td>
+                <td class="font-semibold">
+                    <app-copy-text [copyValue]="p.fullName">
+                        <span [innerHTML]="p.fullName | highlight: searchValue()"></span>
+                    </app-copy-text>
+                </td>
                 <td>
                     <span class="font-bold text-slate-700">{{ p.birthDate | age }}</span>
                 </td>
@@ -80,25 +84,35 @@
                     <p-tag *ngIf="p.daysToProbeEnd <= 0" severity="secondary" value="Завершено" />
                     
                     <div *ngIf="p.daysToProbeEnd > 0" class="flex items-center gap-2">
-                         <span 
-                            class="font-mono font-bold"
-                            [ngClass]="{
-                                'text-red-600': p.daysToProbeEnd < 90,
-                                'text-amber-600': p.daysToProbeEnd >= 90 && p.daysToProbeEnd < 365,
-                                'text-green-600': p.daysToProbeEnd >= 600
-                            }"
-                        >
-                            {{ p.daysToProbeEnd }}
-                        </span>
-                        <span class="text-xs text-slate-400">днів</span>
+                            <app-copy-text [copyValue]="p.daysToProbeEnd" #copyDays>
+                                <span 
+                                    class="font-mono font-bold"
+                                    [ngClass]="{
+                                        'text-red-600': p.daysToProbeEnd < 90,
+                                        'text-amber-600': p.daysToProbeEnd >= 90 && p.daysToProbeEnd < 365,
+                                        'text-green-600': p.daysToProbeEnd >= 600
+                                    }"
+                                >
+                                    {{ p.daysToProbeEnd }}
+                                </span>
+                            </app-copy-text>
+                        <span 
+                            class="text-xs text-slate-400 transition-opacity duration-300" 
+                            [class.opacity-0]="copyDays.isCopied()"
+                        >днів</span>
                     </div>
                     <span *ngIf="p.daysToProbeEnd === -9999" class="text-slate-300">-</span>
                 </td>
 
                 <td>
-                    <div class="flex flex-col text-sm">
-                        <span [innerHTML]="p.phone | highlight: searchValue()"></span>
-                        <span class="text-slate-500 text-xs" [innerHTML]="p.email | highlight: searchValue()"></span>
+                    <div class="flex flex-col text-sm gap-1">
+                        <app-copy-text [copyValue]="p.phone" class="h-5">
+                             <span [innerHTML]="p.phone | highlight: searchValue()"></span>
+                        </app-copy-text>
+
+                        <app-copy-text [copyValue]="p.email" class="h-4 text-slate-400 text-xs">
+                            <span [innerHTML]="p.email | highlight: searchValue()"></span>
+                        </app-copy-text>
                     </div>
                 </td>
                 
