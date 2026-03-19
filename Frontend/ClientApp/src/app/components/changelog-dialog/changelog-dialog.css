@@ -42,7 +42,7 @@
 .markdown-content a {
     color: var(--p-primary-color, #3b82f6);
     text-decoration: none;
-    word-break: break-all; /* Ensure long URLs wrap */
+    word-break: break-all;
 }
 .markdown-content a:hover {
     text-decoration: underline;
@@ -88,7 +88,6 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* Dark mode overrides if variables aren't enough or need tweaking */
 :host-context(.dark) .markdown-content {
     color: var(--p-text-color);
 }

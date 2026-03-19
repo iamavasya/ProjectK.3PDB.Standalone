@@ -15,8 +15,6 @@ export class CopyText {
   isCopied = signal(false);
 
   copy() {
-    // If copyValue is provided, use it. Otherwise use text input as backup copy source.
-    // The consumer might project content so text input might not be what's displayed.
     const valueToCopy = this.copyValue() ?? this.text();
     
     if (valueToCopy === null || valueToCopy === undefined || valueToCopy === '') return;
