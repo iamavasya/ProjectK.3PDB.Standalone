@@ -14,7 +14,7 @@ export interface RestartReadiness {
   serverTimeUtc: string;
 }
 
-export type UpdateState = 'idle' | 'available' | 'downloading' | 'ready' | 'restarting';
+export type UpdateState = 'idle' | 'available' | 'downloading' | 'ready' | 'waitingForRestart' | 'restarting';
 
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
@@ -132,14 +132,14 @@ export class UpdateService {
   }
 
   apply(): Observable<any> {
-    this.updateState$.next('restarting');
+    this.updateState$.next('waitingForRestart');
     return this.http.post(`${this.apiUrl}/apply`, {}).pipe(
       tap(() => {
-        this.updateState$.next('idle');
+        this.updateState$.next('restarting');
       }),
       catchError(err => {
         console.error('Apply failed', err);
-        this.updateState$.next('ready');
+        this.updateState$.next('restarting');
         throw err;
       })
     );

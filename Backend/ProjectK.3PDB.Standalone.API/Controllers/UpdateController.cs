@@ -9,10 +9,12 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
     public class UpdateController : ControllerBase
     {
         private readonly IUpdateService _updateService;
+        private readonly ILogger<UpdateController> _logger;
 
-        public UpdateController(IUpdateService updateService)
+        public UpdateController(IUpdateService updateService, ILogger<UpdateController> logger)
         {
             _updateService = updateService;
+            _logger = logger;
         }
 
         [HttpGet("check")]
@@ -39,8 +41,21 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
         [HttpPost("apply")]
         public IActionResult Apply()
         {
-            _updateService.ApplyAndRestart();
-            return Ok();
+            HttpContext.Response.OnCompleted(() =>
+            {
+                try
+                {
+                    _updateService.ApplyAndRestart();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to apply update and restart.");
+                }
+
+                return Task.CompletedTask;
+            });
+
+            return Ok(new { accepted = true, restarting = true });
         }
 
         [HttpGet("current-version")]
