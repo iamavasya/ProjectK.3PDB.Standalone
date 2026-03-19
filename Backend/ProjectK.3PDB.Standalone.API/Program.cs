@@ -229,13 +229,13 @@ namespace ProjectK._3PDB.Standalone.API
             _shutdownCts = new CancellationTokenSource();
             var token = _shutdownCts.Token;
 
-            _logger.LogWarning("Shutdown scheduled in 5 seconds...");
+            _logger.LogWarning("Shutdown scheduled in 15 seconds...");
 
             Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(5000, token);
+                    await Task.Delay(15000, token);
 
                     if (!token.IsCancellationRequested)
                     {

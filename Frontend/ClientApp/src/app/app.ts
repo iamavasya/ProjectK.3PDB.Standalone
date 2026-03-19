@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ParticipantsListComponent } from './components/participants-list/participants-list';
@@ -7,6 +7,7 @@ import { VersionFooter } from './components/version-footer/version-footer';
 import { UpdateService } from './services/update.service';
 import { UpdateBanner } from './components/update-banner/update-banner';
 import { ChangelogDialog } from './components/changelog-dialog/changelog-dialog';
+import { environment } from './environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +22,11 @@ export class App implements OnInit {
 
   @HostListener('window:beforeunload') 
   onBeforeUnload() {
-    navigator.sendBeacon('http://localhost:5220/api/kill');
+    if (this.updateService.isPlannedRestart()) {
+      return;
+    }
+
+    navigator.sendBeacon(`${environment.apiUrl}/kill`);
   }
   
   // Globally intercept all clicks on external links and open them in a new window/browser
@@ -51,6 +56,6 @@ export class App implements OnInit {
   }
 
   ngOnInit() {
-    this.http.post('http://localhost:5220/api/alive', {}).subscribe();
+    this.http.post(`${environment.apiUrl}/alive`, {}).subscribe();
   }
 }

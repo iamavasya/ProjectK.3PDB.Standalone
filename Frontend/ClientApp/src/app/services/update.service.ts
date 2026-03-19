@@ -8,6 +8,12 @@ export interface CheckResult {
   version?: string;
 }
 
+export interface RestartReadiness {
+  ready: boolean;
+  version: string;
+  serverTimeUtc: string;
+}
+
 export type UpdateState = 'idle' | 'available' | 'downloading' | 'ready' | 'restarting';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +23,7 @@ export class UpdateService {
   public updateState$ = new BehaviorSubject<UpdateState>('idle');
   public newVersion$ = new BehaviorSubject<string | null>(null);
   public currentVersion$ = new BehaviorSubject<string>(' Loading...');
+  public plannedRestart$ = new BehaviorSubject<boolean>(false);
   
   public showChangelog = signal(false);
   public releaseNotes = signal<string>('');
@@ -136,5 +143,21 @@ export class UpdateService {
         throw err;
       })
     );
+  }
+
+  setPlannedRestart(value: boolean) {
+    this.plannedRestart$.next(value);
+  }
+
+  isPlannedRestart(): boolean {
+    return this.plannedRestart$.value;
+  }
+
+  getRestartReadiness(): Observable<RestartReadiness> {
+    return this.http.get<RestartReadiness>(`${this.apiUrl}/readiness`);
+  }
+
+  sendAliveHeartbeat(): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/alive`, {});
   }
 }
