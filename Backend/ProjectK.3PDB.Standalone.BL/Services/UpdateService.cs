@@ -78,7 +78,6 @@ namespace ProjectK._3PDB.Standalone.BL.Services
                 using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "ProjectK.3PDB.Standalone");
 
-                // Ensure tag format vX.Y.Z
                 var tag = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}";
                 
                 var response = await client.GetAsync($"https://api.github.com/repos/iamavasya/ProjectK.3PDB.Standalone/releases/tags/{tag}");
