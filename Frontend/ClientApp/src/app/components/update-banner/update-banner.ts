@@ -31,7 +31,6 @@ export class UpdateBanner {
     this.updateService.apply().subscribe({
       next: () => this.waitForBackendAndReload(expectedVersion),
       error: () => {
-        // Apply can return network error if process exits quickly after accepting the command.
         this.waitForBackendAndReload(expectedVersion);
       }
     });
