@@ -31,30 +31,97 @@
         </div>
     </div>
 
-    <p-table 
-        [value]="participants()" 
-        [paginator]="true" 
-        [rows]="10"
-        [loading]="loading()"
-        [globalFilterFields]="['fullName', 'email', 'kurin', 'phone']"
-        [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
-        #dt1
-        styleClass="p-datatable-sm"
-        stripedRows
-    >
-        <ng-template pTemplate="caption">
-            <div class="flex justify-end">
-                <p-iconfield iconPosition="left">
-                    <p-inputicon styleClass="pi pi-search" />
-                    <input 
-                        pInputText 
-                        type="text" 
-                        (input)="onGlobalFilter(dt1, $event)" 
-                        placeholder="Пошук..." 
-                    />
-                </p-iconfield>
+    <div class="table-toolbar mb-4">
+        <div class="participants-tabs" role="tablist" aria-label="Фільтр учасників">
+            <button
+                type="button"
+                class="participants-tab"
+                [class.participants-tab--active]="activeTab() === 'participants'"
+                (click)="setActiveTab('participants')"
+            >
+                <span>Учасники</span>
+                <p-badge
+                    [value]="activeParticipantsBadgeValue()"
+                    severity="contrast"
+                    styleClass="participants-tab-badge participants-tab-badge--wide"
+                />
+            </button>
+            <button
+                type="button"
+                class="participants-tab"
+                [class.participants-tab--active]="activeTab() === 'archive'"
+                (click)="setActiveTab('archive')"
+            >
+                <span>Архів</span>
+                <p-badge
+                    [value]="archivedParticipantsCount().toString()"
+                    severity="contrast"
+                    styleClass="participants-tab-badge"
+                />
+            </button>
+            <button
+                type="button"
+                class="participants-tab"
+                [class.participants-tab--active]="activeTab() === 'quarterly-report'"
+                (click)="setActiveTab('quarterly-report')"
+            >
+                <span>Звіт по кварталах</span>
+                <p-badge value="BETA" styleClass="participants-tab-beta" />
+            </button>
+        </div>
+
+        <div class="toolbar-right" *ngIf="activeTab() !== 'quarterly-report'">
+            <p-iconfield iconPosition="left">
+                <p-inputicon styleClass="pi pi-search" />
+                <input 
+                    pInputText 
+                    type="text" 
+                    [value]="searchValue()"
+                    (input)="onSearchInput($event)" 
+                    placeholder="Пошук..." 
+                />
+            </p-iconfield>
+        </div>
+
+        <div class="report-controls" *ngIf="activeTab() === 'quarterly-report'">
+            <label class="report-year-field">
+                <span>Рік</span>
+                <p-datepicker
+                    [ngModel]="reportYearDate()"
+                    (ngModelChange)="setReportYear($event)"
+                    view="year"
+                    dateFormat="yy"
+                    appendTo="body"
+                    styleClass="report-year-picker"
+                    panelStyleClass="report-year-picker-panel"
+                    [showIcon]="true"
+                    iconDisplay="input"
+                />
+            </label>
+
+            <div class="quarter-buttons" role="group" aria-label="Вибір кварталу">
+                <button type="button" class="quarter-button" [class.quarter-button--active]="reportQuarter() === 1" (click)="setReportQuarter(1)">Q1</button>
+                <button type="button" class="quarter-button" [class.quarter-button--active]="reportQuarter() === 2" (click)="setReportQuarter(2)">Q2</button>
+                <button type="button" class="quarter-button" [class.quarter-button--active]="reportQuarter() === 3" (click)="setReportQuarter(3)">Q3</button>
+                <button type="button" class="quarter-button" [class.quarter-button--active]="reportQuarter() === 4" (click)="setReportQuarter(4)">Q4</button>
             </div>
-        </ng-template>
+
+            <p-button label="Побудувати" icon="pi pi-chart-bar" severity="secondary" (onClick)="loadQuarterlyReport()" />
+            <p-button label="Копіювати .md" icon="pi pi-copy" severity="contrast" [disabled]="!quarterlyReport().length" (onClick)="copyQuarterlyReport()" />
+            <p-button label="Експорт .md" icon="pi pi-download" severity="help" [disabled]="!quarterlyReport().length" (onClick)="exportQuarterlyReport()" />
+        </div>
+    </div>
+
+    <ng-container *ngIf="activeTab() !== 'quarterly-report'; else quarterlyReportBlock">
+        <p-table 
+            [value]="filteredParticipants()" 
+            [paginator]="true" 
+            [rows]="10"
+            [loading]="loading()"
+            [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
+            styleClass="p-datatable-sm"
+            stripedRows
+        >
 
         <ng-template pTemplate="header">
             <tr>
@@ -134,7 +201,108 @@
                 </td>
             </tr>
         </ng-template>
-    </p-table>
+        </p-table>
+    </ng-container>
+
+    <ng-template #quarterlyReportBlock>
+        <div class="report-summary mb-4">
+            <p-tag severity="info" [value]="'Період: ' + quarterLabel()" />
+            <p-tag severity="secondary" [value]="'Дати: ' + periodLabel()" />
+            <p-tag severity="success" [value]="'Проба відкрита: ' + openedInQuarter()" />
+            <p-tag severity="danger" [value]="'В архів: ' + archivedInQuarter()" />
+            <p-tag severity="info" [value]="'З архіву: ' + unarchivedInQuarter()" />
+            <p-tag severity="contrast" [value]="'Всього: ' + quarterlyReport().length" />
+        </div>
+
+        <p-table
+            [value]="quarterlyReport()"
+            [paginator]="true"
+            [rows]="10"
+            [loading]="reportLoading()"
+            [rowsPerPageOptions]="[10, 25, 50, 100]"
+            styleClass="p-datatable-sm"
+            stripedRows
+        >
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="changedAt">Дата операції <p-sortIcon field="changedAt" /></th>
+                    <th pSortableColumn="probeOpenDate">День відкриття проби <p-sortIcon field="probeOpenDate" /></th>
+                    <th pSortableColumn="fullName">Учасник <p-sortIcon field="fullName" /></th>
+                    <th pSortableColumn="kurin">Курінь <p-sortIcon field="kurin" /></th>
+                    <th>Подія</th>
+                    <th>Було</th>
+                    <th>Стало</th>
+                    <th>Дії</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-row>
+                <tr>
+                    <td>{{ row.changedAt | date : 'dd.MM.yyyy' }}</td>
+                    <td>{{ row.probeOpenDate ? (row.probeOpenDate | date : 'dd.MM.yyyy') : '-' }}</td>
+                    <td class="font-semibold">{{ row.fullName }}</td>
+                    <td>{{ row.kurin ?? '-' }}</td>
+                    <td>
+                        <p-tag [severity]="getReportActionSeverity(row.action)" [value]="getReportActionLabel(row.action)" />
+                    </td>
+                    <td>
+                        <span *ngIf="row.action !== 'opened'; else emptyOldValue">{{ row.oldValue || '-' }}</span>
+                        <ng-template #emptyOldValue>
+                            <span class="text-slate-300">—</span>
+                        </ng-template>
+                    </td>
+                    <td>
+                        <span *ngIf="row.action !== 'opened'; else emptyNewValue">{{ row.newValue || '-' }}</span>
+                        <ng-template #emptyNewValue>
+                            <span class="text-slate-300">—</span>
+                        </ng-template>
+                    </td>
+                    <td>
+                        <p-button
+                            icon="pi pi-trash"
+                            [rounded]="true"
+                            [text]="true"
+                            severity="danger"
+                            [disabled]="!row.participantHistoryKey"
+                            (onClick)="deleteQuarterlyHistory($event, row)"
+                        />
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-slate-500">За вибраний квартал подій не знайдено</td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <div class="report-chart mt-5">
+            <div class="report-chart__header">
+                <h3>Динаміка 3-ої проби за {{ reportYear() }} рік</h3>
+                <span class="report-chart__hint">Лінія: загалом відкритих проб на кінець кварталу. Плюс/мінус: зміни за квартал.</span>
+            </div>
+
+            <div class="report-chart__content" *ngIf="!yearlyChartLoading(); else reportChartLoading">
+                <p-chart
+                    *ngIf="yearlyQuarterChartData(); else reportChartNoData"
+                    type="bar"
+                    [data]="yearlyQuarterChartData()"
+                    [options]="yearlyQuarterChartOptions()"
+                    styleClass="report-chart-canvas"
+                    [style]="{ width: '100%', display: 'block' }"
+                />
+
+                <ng-template #reportChartNoData>
+                    <div class="report-chart__loading">Немає даних для побудови графіка</div>
+                </ng-template>
+            </div>
+
+            <ng-template #reportChartLoading>
+                <div class="report-chart__loading">Завантаження графіка...</div>
+            </ng-template>
+        </div>
+    </ng-template>
 </div>
 
 <p-drawer 

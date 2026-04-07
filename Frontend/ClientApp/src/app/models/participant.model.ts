@@ -7,6 +7,25 @@ export interface ParticipantHistory {
   changedAt: string; 
 }
 
+export interface QuarterlyProbeReportItem {
+  participantHistoryKey: string | null;
+  participantKey: string;
+  fullName: string;
+  kurin: number | null;
+  probeOpenDate: string | null;
+  changedAt: string;
+  action: 'opened' | 'archived' | 'unarchived';
+  oldValue: string | null;
+  newValue: string | null;
+}
+
+export interface QuarterlyProbeTotalsItem {
+  quarter: 1 | 2 | 3 | 4;
+  openedTotal: number;
+  openedInQuarter: number;
+  archivedInQuarter: number;
+}
+
 export interface Participant {
   participantKey: string;
   fullName: string;

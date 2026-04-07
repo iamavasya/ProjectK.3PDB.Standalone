@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Participant, ParticipantHistory } from '../models/participant.model';
+import { Participant, ParticipantHistory, QuarterlyProbeReportItem, QuarterlyProbeTotalsItem } from '../models/participant.model';
 import { environment } from '../environments/environment';
 
 @Injectable({
@@ -21,6 +21,27 @@ export class ParticipantService {
   
   getHistory(participantKey: string): Observable<ParticipantHistory[]> {
     return this.http.get<ParticipantHistory[]>(`${this.apiUrl}/${participantKey}/history`);
+  }
+
+  getQuarterlyProbeReport(year: number, quarter: number): Observable<QuarterlyProbeReportItem[]> {
+    return this.http.get<QuarterlyProbeReportItem[]>(`${this.apiUrl}/report/quarterly-probe`, {
+      params: {
+        year,
+        quarter
+      }
+    });
+  }
+
+  getQuarterlyProbeTotals(year: number): Observable<QuarterlyProbeTotalsItem[]> {
+    return this.http.get<QuarterlyProbeTotalsItem[]>(`${this.apiUrl}/report/quarterly-probe-totals`, {
+      params: {
+        year
+      }
+    });
+  }
+
+  softDeleteHistory(participantHistoryKey: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/history/${participantHistoryKey}`);
   }
 
   create(participant: Participant): Observable<Participant> {
