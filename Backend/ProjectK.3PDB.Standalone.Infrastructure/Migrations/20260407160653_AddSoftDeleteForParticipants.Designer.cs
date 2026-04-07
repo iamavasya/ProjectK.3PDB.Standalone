@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
 
@@ -10,9 +11,11 @@ using ProjectK._3PDB.Standalone.Infrastructure.Context;
 namespace ProjectK._3PDB.Standalone.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407160653_AddSoftDeleteForParticipants")]
+    partial class AddSoftDeleteForParticipants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
@@ -99,9 +102,6 @@ namespace ProjectK._3PDB.Standalone.Infrastructure.Migrations
 
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NewValue")
                         .HasColumnType("TEXT");

@@ -89,6 +89,45 @@ namespace ProjectK._3PDB.Standalone.API.Controllers
             return Ok(history);
         }
 
+        [HttpDelete("history/{participantHistoryKey:guid}")]
+        public async Task<IActionResult> SoftDeleteHistory(Guid participantHistoryKey)
+        {
+            try
+            {
+                await _service.SoftDeleteHistoryAsync(participantHistoryKey);
+                return NoContent();
+            }
+            catch (Exception ex) when (ex.Message == "Not found")
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("report/quarterly-probe")]
+        public async Task<ActionResult<List<QuarterlyProbeReportItemDto>>> GetQuarterlyProbeReport([FromQuery] int year, [FromQuery] int quarter)
+        {
+            try
+            {
+                var reportRows = await _service.GetQuarterlyProbeReportAsync(year, quarter);
+                return Ok(reportRows);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("report/quarterly-probe-totals")]
+        public async Task<ActionResult<List<QuarterlyProbeTotalsItemDto>>> GetQuarterlyProbeTotals([FromQuery] int year)
+        {
+            var totals = await _service.GetQuarterlyProbeTotalsAsync(year);
+            return Ok(totals);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Participant>> Create([FromBody] ParticipantDto participant)
         {

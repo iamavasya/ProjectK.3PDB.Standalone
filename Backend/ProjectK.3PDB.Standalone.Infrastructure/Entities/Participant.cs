@@ -24,6 +24,7 @@ public class Participant
     public bool IsProbeFrozen { get; set; }
     public bool IsSelfReflectionSubmitted { get; set; } = false;
     public bool IsArchived { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
 
     public DateTime? ProbeOpenDate { get; set;}
     public DateTime? BirthDate { get; set; }

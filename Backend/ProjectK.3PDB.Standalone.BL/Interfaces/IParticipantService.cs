@@ -15,6 +15,9 @@ namespace ProjectK._3PDB.Standalone.BL.Interfaces
         Task<List<ParticipantDto>> GetAllAsync();
         Task<ParticipantDto?> GetByKeyAsync(Guid participantKey);
         Task<List<ParticipantHistory>> GetHistoryAsync(Guid participantKey);
+        Task SoftDeleteHistoryAsync(Guid participantHistoryKey);
+        Task<List<QuarterlyProbeReportItemDto>> GetQuarterlyProbeReportAsync(int year, int quarter);
+        Task<List<QuarterlyProbeTotalsItemDto>> GetQuarterlyProbeTotalsAsync(int year);
         Task DeleteAsync(Guid participantKey);
         Task<ParticipantDto> CreateAsync(ParticipantDto dto);
     }

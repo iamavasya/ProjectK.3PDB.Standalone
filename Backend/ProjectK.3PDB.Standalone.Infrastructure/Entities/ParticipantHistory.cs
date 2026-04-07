@@ -15,6 +15,7 @@ public class ParticipantHistory
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
     public DateTime ChangedAt { get; set; }
+    public bool IsDeleted { get; set; } = false;
 
     public Participant? Participant { get; set; }
 }
