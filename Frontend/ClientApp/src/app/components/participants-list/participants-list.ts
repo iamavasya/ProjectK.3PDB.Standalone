@@ -106,6 +106,7 @@ export class ParticipantsListComponent implements OnInit {
   reportYearDate = signal<Date>(new Date(this.reportYear(), 0, 1));
   reportQuarter = signal<1 | 2 | 3 | 4>(this.getCurrentQuarter());
   quarterlyReport = signal<QuarterlyProbeReportItem[]>([]);
+  builtChartYear = signal<number | null>(null);
   reportLoading = signal<boolean>(false);
   yearlyChartLoading = signal<boolean>(false);
   yearlyQuarterChartData = signal<any | null>(null);
@@ -382,16 +383,20 @@ export class ParticipantsListComponent implements OnInit {
   }
 
   loadQuarterlyReport() {
+    const requestedYear = this.reportYear();
+    const requestedQuarter = this.reportQuarter();
+
     this.reportLoading.set(true);
     this.yearlyChartLoading.set(true);
 
     forkJoin({
-      reportRows: this.service.getQuarterlyProbeReport(this.reportYear(), this.reportQuarter()),
-      yearlyTotals: this.service.getQuarterlyProbeTotals(this.reportYear())
+      reportRows: this.service.getQuarterlyProbeReport(requestedYear, requestedQuarter),
+      yearlyTotals: this.service.getQuarterlyProbeTotals(requestedYear)
     }).subscribe({
       next: ({ reportRows, yearlyTotals }) => {
         this.quarterlyReport.set(reportRows);
         this.updateYearlyQuarterChart(yearlyTotals);
+        this.builtChartYear.set(requestedYear);
         this.reportLoading.set(false);
         this.yearlyChartLoading.set(false);
       },
