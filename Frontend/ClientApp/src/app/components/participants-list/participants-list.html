@@ -6,34 +6,16 @@
         <app-header></app-header>
         <div class="flex gap-2">
             <p-button label="Додати" icon="pi pi-plus" severity="primary" (onClick)="openCreate()" />
-            
-            <p-fileupload 
-                mode="basic"
-                chooseLabel="Імпорт CSV" 
-                chooseIcon="pi pi-upload"
-                name="demo[]" 
-                accept=".csv" 
-                maxFileSize="1000000" 
-                (onSelect)="onFileSelect($event)" 
-                [auto]="true" 
-                severity="help" 
-            />
 
             <p-button
-                label="Експорт"
-                icon="pi pi-file-export"
-                severity="help"
-                (onClick)="exportCsv()"
-            />
-
-            <p-button
-                label="Бекап / Перенесення"
+                label="Імпорт / Експорт"
                 icon="pi pi-database"
-                severity="secondary"
-                (onClick)="backupMenu.toggle($event)"
+                severity="help"
+                (onClick)="dataMenu.toggle($event)"
             />
-            <p-menu #backupMenu [model]="backupMenuItems" [popup]="true" [appendTo]="'body'" />
+            <p-menu #dataMenu [model]="dataMenuItems" [popup]="true" [appendTo]="'body'" />
 
+            <input #csvInput type="file" accept=".csv" hidden (change)="onCsvSelected($event)" />
             <input #restoreDbInput type="file" accept=".db" hidden (change)="onRestoreDbSelected($event)" />
             <input #archiveInput type="file" accept=".zip" hidden (change)="onArchiveSelected($event)" />
 

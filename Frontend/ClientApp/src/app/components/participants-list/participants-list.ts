@@ -10,7 +10,6 @@ import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
-import { FileUpload } from 'primeng/fileupload';
 import { Menu } from 'primeng/menu';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; 
@@ -47,7 +46,6 @@ import { CopyText } from '../copy-text/copy-text';
     IconField,
     InputIcon,
     InputText,
-    FileUpload,
     Menu,
     Toast,
     ConfirmDialogModule,
@@ -72,30 +70,50 @@ export class ParticipantsListComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private fb = inject(FormBuilder);
 
+  @ViewChild('csvInput') csvInput?: { nativeElement: HTMLInputElement };
   @ViewChild('restoreDbInput') restoreDbInput?: { nativeElement: HTMLInputElement };
   @ViewChild('archiveInput') archiveInput?: { nativeElement: HTMLInputElement };
 
-  backupMenuItems: MenuItem[] = [
+  dataMenuItems: MenuItem[] = [
     {
-      label: 'Завантажити повний бекап (.db)',
-      icon: 'pi pi-download',
-      command: () => this.downloadDb(),
+      label: 'CSV',
+      items: [
+        {
+          label: 'Імпорт CSV',
+          icon: 'pi pi-upload',
+          command: () => this.csvInput?.nativeElement.click(),
+        },
+        {
+          label: 'Експорт CSV',
+          icon: 'pi pi-file-export',
+          command: () => this.exportCsv(),
+        },
+      ],
     },
     {
-      label: 'Експортувати архів (.zip)',
-      icon: 'pi pi-file-export',
-      command: () => this.exportArchive(),
-    },
-    { separator: true },
-    {
-      label: 'Відновити з бекапу (.db)',
-      icon: 'pi pi-upload',
-      command: () => this.restoreDbInput?.nativeElement.click(),
-    },
-    {
-      label: 'Імпортувати архів (.zip)',
-      icon: 'pi pi-replay',
-      command: () => this.archiveInput?.nativeElement.click(),
+      label: 'Бекап / Перенесення',
+      items: [
+        {
+          label: 'Завантажити повний бекап (.db)',
+          icon: 'pi pi-download',
+          command: () => this.downloadDb(),
+        },
+        {
+          label: 'Експортувати архів (.zip)',
+          icon: 'pi pi-file-export',
+          command: () => this.exportArchive(),
+        },
+        {
+          label: 'Відновити з бекапу (.db)',
+          icon: 'pi pi-replay',
+          command: () => this.restoreDbInput?.nativeElement.click(),
+        },
+        {
+          label: 'Імпортувати архів (.zip)',
+          icon: 'pi pi-upload',
+          command: () => this.archiveInput?.nativeElement.click(),
+        },
+      ],
     },
   ];
 
@@ -310,19 +328,21 @@ export class ParticipantsListComponent implements OnInit {
 
   
 
-  onFileSelect(event: any) {
-    const file = event.files[0];
-    if (file) {
-      this.service.importCsv(file).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Успіх', detail: 'CSV імпортовано' });
-          this.loadData(); 
-        },
-        error: (err) => {
-          this.showError('Помилка імпорту', err.error?.message || err.message);
-        }
-      });
-    }
+  onCsvSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.service.importCsv(file).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Успіх', detail: 'CSV імпортовано' });
+        this.loadData();
+      },
+      error: (err) => {
+        this.showError('Помилка імпорту', err.error?.message || err.message);
+      }
+    });
   }
 
   exportCsv() {
