@@ -1,0 +1,75 @@
+# Two container modes, selected by Compose profiles:
+#
+#   E2E / mock-update (headless full app, mocked update+changelog):
+#     docker compose --profile e2e up --build
+#     -> app on http://localhost:5220
+#
+#   Dev environment (hot-reload API + Angular dev server):
+#     docker compose --profile dev up
+#     -> API  on http://localhost:5220
+#     -> SPA  on http://localhost:4200
+#
+# Override the mock scenario with env vars, e.g.:
+#     MOCK_NEW_VERSION=3.1.0 MOCK_RELEASE_NOTES="..." docker compose --profile e2e up --build
+
+services:
+  # --- E2E / mock-update container: API + built SPA, headless, updates mocked ---
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: projectk3pdb-app
+    profiles: ["e2e"]
+    environment:
+      PROJECTK_CONTAINER: "true"
+      PROJECTK_MOCK_UPDATE: "true"
+      MOCK_CURRENT_VERSION: "${MOCK_CURRENT_VERSION:-1.0.0}"
+      MOCK_NEW_VERSION: "${MOCK_NEW_VERSION:-2.0.0}"
+      MOCK_RELEASE_NOTES: "${MOCK_RELEASE_NOTES:-E2E_CHANGELOG_MARKER test changelog}"
+    ports:
+      - "5220:5220"
+
+  # --- Dev environment: hot-reload .NET API (Development) ---
+  api-dev:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    profiles: ["dev"]
+    working_dir: /src/Backend/ProjectK.3PDB.Standalone.API
+    command: ["dotnet", "watch", "run", "--no-launch-profile"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://0.0.0.0:5220"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+    volumes:
+      - ./Backend:/src/Backend
+      # Named volumes shadow the host's Windows bin/obj so Linux builds don't clash.
+      - api-bin:/src/Backend/ProjectK.3PDB.Standalone.API/bin
+      - api-obj:/src/Backend/ProjectK.3PDB.Standalone.API/obj
+      - bl-bin:/src/Backend/ProjectK.3PDB.Standalone.BL/bin
+      - bl-obj:/src/Backend/ProjectK.3PDB.Standalone.BL/obj
+      - infra-bin:/src/Backend/ProjectK.3PDB.Standalone.Infrastructure/bin
+      - infra-obj:/src/Backend/ProjectK.3PDB.Standalone.Infrastructure/obj
+    ports:
+      - "5220:5220"
+
+  # --- Dev environment: Angular dev server (hot reload) ---
+  web-dev:
+    image: node:20-alpine
+    profiles: ["dev"]
+    working_dir: /app
+    command: sh -c "npm install && npm run start -- --host 0.0.0.0 --port 4200 --poll 2000"
+    volumes:
+      - ./Frontend/ClientApp:/app
+      - web-node-modules:/app/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      - api-dev
+
+volumes:
+  api-bin:
+  api-obj:
+  bl-bin:
+  bl-obj:
+  infra-bin:
+  infra-obj:
+  web-node-modules:

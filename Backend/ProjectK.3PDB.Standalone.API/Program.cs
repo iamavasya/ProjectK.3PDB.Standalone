@@ -17,6 +17,14 @@ namespace ProjectK._3PDB.Standalone.API
 
             var builder = WebApplication.CreateBuilder(args);
 
+            // Run modes (driven by environment variables / configuration):
+            //  - containerMode: serve the SPA + API headless (no browser launch, no Velopack,
+            //    no heartbeat auto-shutdown) so the app can run inside a Docker container.
+            //  - mockUpdate: swap the real UpdateService for a controllable mock and expose the
+            //    test-control endpoints, for deterministic update/changelog E2E testing.
+            var containerMode = builder.Configuration.GetValue<bool>("PROJECTK_CONTAINER");
+            var mockUpdate = builder.Configuration.GetValue<bool>("PROJECTK_MOCK_UPDATE");
+
             var appPaths = new AppPaths();
             appPaths.EnsureDirectories();
 
@@ -56,7 +64,17 @@ namespace ProjectK._3PDB.Standalone.API
             });
 
             builder.Services.AddSingleton<BrowserLifeTimeManager>();
-            builder.Services.AddSingleton<IUpdateService, UpdateService>();
+
+            if (mockUpdate)
+            {
+                builder.Services.AddSingleton<MockUpdateService>();
+                builder.Services.AddSingleton<IUpdateService>(sp => sp.GetRequiredService<MockUpdateService>());
+                builder.Services.AddSingleton<IMockUpdateControl>(sp => sp.GetRequiredService<MockUpdateService>());
+            }
+            else
+            {
+                builder.Services.AddSingleton<IUpdateService, UpdateService>();
+            }
 
             builder.Services.AddHostedService(provider => provider.GetRequiredService<BrowserLifeTimeManager>());
 
@@ -82,53 +100,68 @@ namespace ProjectK._3PDB.Standalone.API
 
 
 
-            if (!app.Environment.IsDevelopment())
+            // Development desktop: API only; the Angular dev server is served separately (ng serve).
+            if (app.Environment.IsDevelopment() && !containerMode)
             {
-                app.UseDefaultFiles();
-                app.UseStaticFiles(new StaticFileOptions
+                app.Run();
+                return;
+            }
+
+            // Both container and packaged-desktop modes serve the built Angular SPA.
+            app.UseDefaultFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
                 {
-                    OnPrepareResponse = ctx =>
+                    if (ctx.File.Name == "index.html")
                     {
-                        if (ctx.File.Name == "index.html")
-                        {
-                            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-                            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
-                            ctx.Context.Response.Headers.Append("Expires", "0");
-                        }
+                        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+                        ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+                        ctx.Context.Response.Headers.Append("Expires", "0");
                     }
-                });
-                app.MapFallbackToFile("index.html");
-                
-                app.MapPost("/api/kill", (BrowserLifeTimeManager manager) =>
-                {
-                    manager.ScheduleShutdown();
-                    return Results.Ok();
-                });
-
-                app.MapPost("/api/alive", (BrowserLifeTimeManager manager) =>
-                {
-                    manager.CancelShutdown();
-                    return Results.Ok();
-                });
-
-                var url = "http://localhost:5220";
-
-                if (!args.Contains("--restarted"))
-                {
-                    Task.Delay(100).ContinueWith(t => OpenBrowser(url));
-                    app.Run(url);
                 }
-                else
-                {
-                    Console.WriteLine("Restart detected. Skipping browser launch.");
-                    app.Run(url);
-                }
+            });
+            app.MapFallbackToFile("index.html");
+
+            if (containerMode)
+            {
+                // Headless container: no browser launch and no heartbeat-driven shutdown, so the
+                // container stays up for as long as the orchestrator wants it. Heartbeat endpoints
+                // are accepted as no-ops for frontend compatibility.
+                app.MapPost("/api/kill", () => Results.Ok());
+                app.MapPost("/api/alive", () => Results.Ok());
+
+                var containerUrl = "http://0.0.0.0:5220";
+                Console.WriteLine($"Container mode. Listening on {containerUrl}. MockUpdate={mockUpdate}");
+                app.Run(containerUrl);
+                return;
+            }
+
+            // Packaged desktop: heartbeat-driven lifetime + a real browser window.
+            app.MapPost("/api/kill", (BrowserLifeTimeManager manager) =>
+            {
+                manager.ScheduleShutdown();
+                return Results.Ok();
+            });
+
+            app.MapPost("/api/alive", (BrowserLifeTimeManager manager) =>
+            {
+                manager.CancelShutdown();
+                return Results.Ok();
+            });
+
+            var url = "http://localhost:5220";
+
+            if (!args.Contains("--restarted"))
+            {
+                Task.Delay(100).ContinueWith(t => OpenBrowser(url));
             }
             else
             {
-                app.Run();
+                Console.WriteLine("Restart detected. Skipping browser launch.");
             }
 
+            app.Run(url);
         }
 
         /// <summary>

@@ -1,0 +1,15 @@
+{
+  "name": "projectk3pdb-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E tests for ProjectK.3PDB.Standalone (mock update -> changelog flow).",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "install-browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

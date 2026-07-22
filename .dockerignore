@@ -1,0 +1,22 @@
+# Build artifacts
+**/bin
+**/obj
+**/dist
+[Rr]eleases/
+Backend/Releases
+Backend/publish
+3pdbApp
+
+# Dependencies (installed fresh inside the image)
+**/node_modules
+
+# IDE / VCS
+.git
+.vs
+**/.vs
+**/*.user
+
+# E2E workspace (runs on the host, not in the app image)
+e2e/node_modules
+e2e/test-results
+e2e/playwright-report
