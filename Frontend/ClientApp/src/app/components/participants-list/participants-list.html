@@ -26,7 +26,17 @@
                 (onClick)="exportCsv()"
             />
 
-                
+            <p-button
+                label="Бекап / Перенесення"
+                icon="pi pi-database"
+                severity="secondary"
+                (onClick)="backupMenu.toggle($event)"
+            />
+            <p-menu #backupMenu [model]="backupMenuItems" [popup]="true" [appendTo]="'body'" />
+
+            <input #restoreDbInput type="file" accept=".db" hidden (change)="onRestoreDbSelected($event)" />
+            <input #archiveInput type="file" accept=".zip" hidden (change)="onArchiveSelected($event)" />
+
             <p-button icon="pi pi-refresh" (onClick)="loadData()" variant="outlined" />
         </div>
     </div>

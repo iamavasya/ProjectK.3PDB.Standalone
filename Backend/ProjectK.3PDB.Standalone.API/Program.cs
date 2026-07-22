@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectK._3PDB.Standalone.BL.Interfaces;
 using ProjectK._3PDB.Standalone.BL.Services;
 using ProjectK._3PDB.Standalone.Infrastructure.Context;
+using ProjectK._3PDB.Standalone.Infrastructure.Paths;
 using System.Diagnostics;
 using Velopack;
 
@@ -16,20 +17,21 @@ namespace ProjectK._3PDB.Standalone.API
 
             var builder = WebApplication.CreateBuilder(args);
 
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appFolder = Path.Combine(localAppData, "ProjectK3PDB", "data");
-            if (!Directory.Exists(appFolder))
-            {
-                Directory.CreateDirectory(appFolder);
-            }
+            var appPaths = new AppPaths();
+            appPaths.EnsureDirectories();
 
-            var dbPath = Path.Combine(appFolder, "projectk_3pdb_standalone_v2.db");
+            // Apply a staged raw-db restore (if any) before the database is opened.
+            ApplyPendingRestore(appPaths);
+
+            builder.Services.AddSingleton(appPaths);
 
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite($"Data Source={dbPath}"));
+                options.UseSqlite($"Data Source={appPaths.DbPath}"));
 
             builder.Services.AddScoped<IParticipantService, ParticipantService>();
             builder.Services.AddScoped<IConfigService, ConfigService>();
+            builder.Services.AddScoped<IBackupService, BackupService>();
+            builder.Services.AddHostedService<AutoBackupHostedService>();
 
             builder.Services.AddAutoMapper(cfg => { cfg.AddCollectionMappers(); }, typeof(BL.Maps.ParticipantMappingProfile));
 
@@ -127,6 +129,50 @@ namespace ProjectK._3PDB.Standalone.API
                 app.Run();
             }
 
+        }
+
+        /// <summary>
+        /// If a restore was staged (an uploaded <c>.db</c> awaiting swap), backs up the
+        /// current database and replaces it with the staged file. Runs at startup, before
+        /// any database connection is opened, so the live file is not locked.
+        /// </summary>
+        private static void ApplyPendingRestore(AppPaths paths)
+        {
+            if (!File.Exists(paths.PendingRestorePath))
+            {
+                return;
+            }
+
+            try
+            {
+                paths.EnsureDirectories();
+
+                if (File.Exists(paths.DbPath))
+                {
+                    var safety = Path.Combine(paths.BackupsFolder, $"pre-swap_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db");
+                    File.Copy(paths.DbPath, safety, overwrite: true);
+                }
+
+                // Remove stale SQLite sidecar files so they don't shadow the new database.
+                foreach (var sidecar in new[] { "-wal", "-shm", "-journal" })
+                {
+                    var sidecarPath = paths.DbPath + sidecar;
+                    if (File.Exists(sidecarPath))
+                    {
+                        File.Delete(sidecarPath);
+                    }
+                }
+
+                File.Copy(paths.PendingRestorePath, paths.DbPath, overwrite: true);
+                File.Delete(paths.PendingRestorePath);
+
+                Console.WriteLine("Staged database restore applied.");
+            }
+            catch (Exception ex)
+            {
+                // Leave the pending file in place for a later retry rather than crashing startup.
+                Console.WriteLine($"Failed to apply staged restore: {ex.Message}");
+            }
         }
 
         private static void OpenBrowser(string url)

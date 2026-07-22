@@ -66,9 +66,4 @@ export class ParticipantService {
   exportCsv(): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' });
   }
-  
-  
-  downloadDb(): void {
-    window.location.href = '/api/backup/download-db'; 
-  }
 }

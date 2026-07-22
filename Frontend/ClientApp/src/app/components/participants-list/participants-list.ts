@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -11,6 +11,7 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { FileUpload } from 'primeng/fileupload';
+import { Menu } from 'primeng/menu';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog'; 
 import { Drawer } from 'primeng/drawer';
@@ -21,9 +22,10 @@ import { ChartModule } from 'primeng/chart';
 import { forkJoin } from 'rxjs';
 
 import { ParticipantService } from '../../services/participant.service';
+import { BackupService } from '../../services/backup.service';
 import { Participant, QuarterlyProbeReportItem, QuarterlyProbeTotalsItem } from '../../models/participant.model';
 import { AgePipe } from '../../pipes/age.pipe';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService, MenuItem } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { HighlightPipe } from '../../pipes/highlight.pipe';
 import { formatDateToISO } from '../../functions/formatDateToISO.function';
@@ -46,6 +48,7 @@ import { CopyText } from '../copy-text/copy-text';
     InputIcon,
     InputText,
     FileUpload,
+    Menu,
     Toast,
     ConfirmDialogModule,
     Drawer,
@@ -64,9 +67,37 @@ import { CopyText } from '../copy-text/copy-text';
 })
 export class ParticipantsListComponent implements OnInit {
   private service = inject(ParticipantService);
+  private backupService = inject(BackupService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
   private fb = inject(FormBuilder);
+
+  @ViewChild('restoreDbInput') restoreDbInput?: { nativeElement: HTMLInputElement };
+  @ViewChild('archiveInput') archiveInput?: { nativeElement: HTMLInputElement };
+
+  backupMenuItems: MenuItem[] = [
+    {
+      label: 'Завантажити повний бекап (.db)',
+      icon: 'pi pi-download',
+      command: () => this.downloadDb(),
+    },
+    {
+      label: 'Експортувати архів (.zip)',
+      icon: 'pi pi-file-export',
+      command: () => this.exportArchive(),
+    },
+    { separator: true },
+    {
+      label: 'Відновити з бекапу (.db)',
+      icon: 'pi pi-upload',
+      command: () => this.restoreDbInput?.nativeElement.click(),
+    },
+    {
+      label: 'Імпортувати архів (.zip)',
+      icon: 'pi pi-replay',
+      command: () => this.archiveInput?.nativeElement.click(),
+    },
+  ];
 
   
   participants = signal<Participant[]>([]);
@@ -314,8 +345,92 @@ export class ParticipantsListComponent implements OnInit {
     })
   }
   
+  private saveBlob(blob: Blob, fileName: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private todayStamp(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  downloadDb() {
+    this.backupService.downloadDb().subscribe({
+      next: (blob) => this.saveBlob(blob, `3pdb_backup_${this.todayStamp()}.db`),
+      error: (err) => this.showError('Помилка бекапу', err.error?.message || err.message),
+    });
+  }
+
+  exportArchive() {
+    this.backupService.exportArchive().subscribe({
+      next: (blob) => this.saveBlob(blob, `3pdb_archive_${this.todayStamp()}.zip`),
+      error: (err) => this.showError('Помилка експорту архіву', err.error?.message || err.message),
+    });
+  }
+
+  onRestoreDbSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.confirmationService.confirm({
+      header: 'Відновлення бази даних',
+      message: `Файл «${file.name}» повністю замінить усі поточні дані. Перед заміною буде створено резервну копію. Застосунок перезапуститься. Продовжити?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Відновити',
+      rejectLabel: 'Скасувати',
+      accept: () => {
+        this.backupService.restoreDb(file).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Відновлено',
+              detail: 'Базу підготовлено. Застосунок перезапускається...',
+            });
+            this.backupService.restart().subscribe({
+              next: () => setTimeout(() => window.location.reload(), 5000),
+              error: () => setTimeout(() => window.location.reload(), 5000),
+            });
+          },
+          error: (err) => this.showError('Помилка відновлення', err.error?.message || err.error || err.message),
+        });
+      },
+    });
+  }
+
+  onArchiveSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.confirmationService.confirm({
+      header: 'Імпорт архіву',
+      message: `Архів «${file.name}» повністю замінить усі поточні дані (учасники, історія, налаштування). Перед заміною буде створено резервну копію. Продовжити?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Імпортувати',
+      rejectLabel: 'Скасувати',
+      accept: () => {
+        this.backupService.importArchive(file).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Успіх', detail: 'Архів імпортовано' });
+            this.loadData();
+          },
+          error: (err) => this.showError('Помилка імпорту архіву', err.error?.message || err.error || err.message),
+        });
+      },
+    });
+  }
+
   getSeverity(status: boolean): "success" | "danger" {
-    return status ? 'success' : 'danger'; 
+    return status ? 'success' : 'danger';
   }
   
   showError(summary: string, detail: string) {
