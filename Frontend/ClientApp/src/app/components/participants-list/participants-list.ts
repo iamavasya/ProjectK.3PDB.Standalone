@@ -285,6 +285,15 @@ export class ParticipantsListComponent implements OnInit {
 
     const rawValue = this.form.value;
 
+    // Datepickers hand back JS Date objects, and JSON.stringify serializes those via
+    // toISOString() (UTC) — which rolls the day back in positive-offset timezones (UTC+2/+3).
+    // Normalize every Date to a local YYYY-MM-DD string so any datepicker field stays correct.
+    const dateFields = Object.fromEntries(
+      Object.entries(rawValue)
+        .filter(([, value]) => value instanceof Date)
+        .map(([key, value]) => [key, formatDateToISO(value as Date)])
+    );
+
     const payload = {
       ...rawValue,
       isProbeOpen: !!rawValue.isProbeOpen,
@@ -296,8 +305,7 @@ export class ParticipantsListComponent implements OnInit {
       isArchived: !!rawValue.isArchived,
       isProbePassed: !!rawValue.isProbePassed,
 
-      probeOpenDate: formatDateToISO(rawValue.probeOpenDate),
-      approvalDate: formatDateToISO(rawValue.approvalDate),
+      ...dateFields,
 
       kurin: rawValue.kurin ? Number(rawValue.kurin) : null
     }
