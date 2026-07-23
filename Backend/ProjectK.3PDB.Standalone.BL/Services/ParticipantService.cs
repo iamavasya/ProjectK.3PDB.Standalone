@@ -332,8 +332,10 @@ namespace ProjectK._3PDB.Standalone.BL.Services
             { nameof(ParticipantDto.IsProbeContinued), "Проба продовжена" },
             { nameof(ParticipantDto.IsProbeFrozen), "Проба заморожена" },
             { nameof(ParticipantDto.IsArchived), "Архівований" },
+            { nameof(ParticipantDto.IsProbePassed), "Проба пройдена" },
             { nameof(ParticipantDto.ProbeOpenDate), "Дата відкриття" },
             { nameof(ParticipantDto.BirthDate), "Дата народження" },
+            { nameof(ParticipantDto.ApprovalDate), "Дата затвердження" },
             { nameof(ParticipantDto.Notes), "Нотатки" }
         };
 

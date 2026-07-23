@@ -126,13 +126,23 @@ export class ParticipantsListComponent implements OnInit {
   activeParticipantsBadgeValue = computed(() => `${this.activeOpenedProbesCount()}+${this.activeNotOpenedProbesCount()}`);
   archivedParticipantsCount = computed(() => this.participants().filter((participant) => participant.isArchived).length);
   activeTab = signal<'participants' | 'archive' | 'quarterly-report'>('participants');
-  visibleParticipants = computed(() =>
-    this.activeTab() === 'quarterly-report'
-      ? []
-      : this.participants().filter((participant) =>
-          this.activeTab() === 'archive' ? participant.isArchived : !participant.isArchived
-        )
-  );
+  visibleParticipants = computed(() => {
+    const tab = this.activeTab();
+
+    if (tab === 'quarterly-report') {
+      return [];
+    }
+
+    if (tab === 'archive') {
+      // Passed-probe participants first, then the regular archived ones (stable within groups).
+      return this.participants()
+        .filter((participant) => participant.isArchived)
+        .slice()
+        .sort((a, b) => Number(b.isProbePassed) - Number(a.isProbePassed));
+    }
+
+    return this.participants().filter((participant) => !participant.isArchived);
+  });
   filteredParticipants = computed(() => {
     const search = this.searchValue().trim().toLowerCase();
 
@@ -201,8 +211,9 @@ export class ParticipantsListComponent implements OnInit {
       
       birthDate: [null],
       probeOpenDate: [null],
-      
-      
+      approvalDate: [null],
+
+
       isProbeOpen: [false],
       isMotivationLetterWritten: [false],
       isFormFilled: [false],
@@ -210,7 +221,8 @@ export class ParticipantsListComponent implements OnInit {
       isProbeFrozen: [false],
       isSelfReflectionSubmitted: [false],
       isArchived: [false],
-      
+      isProbePassed: [false],
+
       notes: ['']
     });
   }
@@ -249,20 +261,17 @@ export class ParticipantsListComponent implements OnInit {
     this.isEditMode.set(true);
     
     
-    const patchData = { 
+    const patchData = {
         ...participant,
         birthDate: participant.birthDate ? new Date(participant.birthDate) : null,
-        probeOpenDate: participant.probeOpenDate ? new Date(participant.probeOpenDate) : null
+        probeOpenDate: participant.probeOpenDate ? new Date(participant.probeOpenDate) : null,
+        approvalDate: participant.approvalDate ? new Date(participant.approvalDate) : null
     };
 
     this.form.patchValue(patchData);
 
-    if (participant.isProbeOpen) {
-        this.form.get('probeOpenDate')?.setValidators([Validators.required]);
-    } else {
-        this.form.get('probeOpenDate')?.clearValidators();
-    }
-    this.form.get('probeOpenDate')?.updateValueAndValidity();
+    this.applyConditionalDateValidator('isProbeOpen', 'probeOpenDate');
+    this.applyConditionalDateValidator('isProbePassed', 'approvalDate');
 
     this.drawerVisible.set(true);
   }
@@ -275,7 +284,7 @@ export class ParticipantsListComponent implements OnInit {
     }
 
     const rawValue = this.form.value;
-    
+
     const payload = {
       ...rawValue,
       isProbeOpen: !!rawValue.isProbeOpen,
@@ -285,8 +294,10 @@ export class ParticipantsListComponent implements OnInit {
       isProbeFrozen: !!rawValue.isProbeFrozen,
       isSelfReflectionSubmitted: !!rawValue.isSelfReflectionSubmitted,
       isArchived: !!rawValue.isArchived,
+      isProbePassed: !!rawValue.isProbePassed,
 
       probeOpenDate: formatDateToISO(rawValue.probeOpenDate),
+      approvalDate: formatDateToISO(rawValue.approvalDate),
 
       kurin: rawValue.kurin ? Number(rawValue.kurin) : null
     }
@@ -457,6 +468,26 @@ export class ParticipantsListComponent implements OnInit {
     this.messageService.add({ severity: 'error', summary, detail });
   }
 
+  private ageOf(participant: Participant): number | null {
+    if (!participant.birthDate) return null;
+
+    const today = new Date();
+    const birth = new Date(participant.birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  // Under 16 (or unknown age) the motivation-letter status always shows (grey when not written).
+  // From 16+ it is hidden unless the letter was actually written.
+  showMotivationStatus(participant: Participant): boolean {
+    const age = this.ageOf(participant);
+    return age === null || age < 16 || participant.isMotivationLetterWritten;
+  }
+
   private calculateDays(birthDateString: string | null, probeOpenDateString: string | null): number | undefined {
     
     if (!birthDateString || !probeOpenDateString) return undefined; 
@@ -472,20 +503,23 @@ export class ParticipantsListComponent implements OnInit {
   }
 
   private setupFormValidators() {
-    
-    this.form.get('isProbeOpen')?.valueChanges.subscribe(isOpen => {
-      const dateControl = this.form.get('probeOpenDate');
-      
-      if (isOpen) {
-        
-        dateControl?.setValidators([Validators.required]);
-      } else {
-        
-        dateControl?.clearValidators();
-      }
-      
-      dateControl?.updateValueAndValidity();
-    });
+    // A date becomes required when its paired checkbox is ticked.
+    this.form.get('isProbeOpen')?.valueChanges.subscribe(() =>
+      this.applyConditionalDateValidator('isProbeOpen', 'probeOpenDate')
+    );
+    this.form.get('isProbePassed')?.valueChanges.subscribe(() =>
+      this.applyConditionalDateValidator('isProbePassed', 'approvalDate')
+    );
+  }
+
+  private applyConditionalDateValidator(flagControl: string, dateControl: string) {
+    const control = this.form.get(dateControl);
+    if (this.form.get(flagControl)?.value) {
+      control?.setValidators([Validators.required]);
+    } else {
+      control?.clearValidators();
+    }
+    control?.updateValueAndValidity();
   }
 
   setActiveTab(tab: 'participants' | 'archive' | 'quarterly-report') {

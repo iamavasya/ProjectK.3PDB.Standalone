@@ -177,11 +177,12 @@
                 
                 <td>
                     <div class="flex gap-2">
-                        <i class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
+                        <i *ngIf="showMotivationStatus(p)" class="pi" [ngClass]="p.isMotivationLetterWritten ? 'pi-envelope text-green-500' : 'pi-envelope text-slate-300'" [pTooltip]="p.isMotivationLetterWritten ? 'Лист написаний' : 'Лист не написаний'"></i>
                         <i class="pi" [ngClass]="p.isSelfReflectionSubmitted ? 'pi-check-circle text-green-500' : 'pi-times-circle text-slate-300'" [pTooltip]="p.isSelfReflectionSubmitted ? 'Саморефлексія подана' : 'Саморефлексія не подана'"></i>
                         <i class="pi" [ngClass]="p.isFormFilled ? 'pi-file-check text-green-500' : 'pi-file text-slate-300'" [pTooltip]="p.isFormFilled ? 'Форма заповнена' : 'Форма не заповнена'"></i>
                         <i class="pi" [ngClass]="p.isProbeOpen ? 'pi-lock-open text-green-500' : 'pi-lock text-slate-300'" [pTooltip]="p.isProbeOpen ? 'Проба відкрита' : 'Проба закрита'"></i>
                         <i class="pi" [ngClass]="p.isArchived ? 'pi-file-excel text-red-500' : null" [pTooltip]="p.isArchived ? 'Архівований' : undefined"></i>
+                        <i *ngIf="p.isProbePassed" class="pi pi-verified text-green-600" pTooltip="Проба пройдена"></i>
                     </div>
                 </td>
 
@@ -352,11 +353,20 @@
                 <p-checkbox formControlName="isArchived" binary="true" inputId="chk5" />
                 <label for="chk5">Архівований</label>
             </div>
+            <div class="flex items-center gap-2">
+                <p-checkbox formControlName="isProbePassed" binary="true" inputId="chk6" />
+                <label for="chk6">Проба пройдена</label>
+            </div>
         </div>
 
         <div class="flex flex-col gap-1">
             <label class="font-semibold">Дата відкриття проби</label>
             <p-datepicker formControlName="probeOpenDate" dateFormat="dd.mm.yy" appendTo="body" showIcon iconDisplay="input" fluid />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="font-semibold">Дата затвердження Скобом/Вірлицею</label>
+            <p-datepicker formControlName="approvalDate" dateFormat="dd.mm.yy" appendTo="body" showIcon iconDisplay="input" fluid />
         </div>
 
         <div class="flex flex-col gap-1">

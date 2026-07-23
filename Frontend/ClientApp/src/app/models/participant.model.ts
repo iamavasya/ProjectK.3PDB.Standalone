@@ -41,10 +41,12 @@ export interface Participant {
   isProbeFrozen: boolean;
   isSelfReflectionSubmitted: boolean;
   isArchived: boolean;
-  
-  
+  isProbePassed: boolean;
+
+
   probeOpenDate: string | null;
   birthDate: string | null;
+  approvalDate: string | null;
   
   notes: string;
 

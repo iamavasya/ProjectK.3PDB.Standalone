@@ -15,9 +15,11 @@ public class ParticipantDto
     public bool IsProbeFrozen { get; set; }
     public bool IsSelfReflectionSubmitted { get; set; }
     public bool IsArchived { get; set; }
+    public bool IsProbePassed { get; set; }
 
     public DateTime? ProbeOpenDate { get; set; }
     public DateTime? BirthDate { get; set; }
+    public DateTime? ApprovalDate { get; set; }
 
     public string? Notes { get; set; }
 
